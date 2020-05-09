@@ -9,8 +9,8 @@
 #define TEST_MAP_MAX_SIZE       (32*32)
 #define TEST_LABOuLES_MAX_SIZE    (10)
 float g_InBuffer[TEST_MAP_MAX_SIZE];
-float g_IdeaBuffer[TEST_LABOuLES_MAX_SIZE]; // as Ideal res
-float g_OuBuffer[TEST_LABOuLES_MAX_SIZE];
+int g_IdeaBuffer[TEST_LABOuLES_MAX_SIZE]; // as Ideal res
+int g_OuBuffer[TEST_LABOuLES_MAX_SIZE];
 
 str_data_para       g_pre_data;
 str_judge_data      g_res_judge;
@@ -19,9 +19,10 @@ NN_model_c          g_nn_mod;
 
 void main(void)
 {
-    float *test_x, *test_y, *train_x, *train_y;
+    float *test_x, *train_x, *inX;;
+    int *test_y, *train_y;
     int idx;
-    float *inX, *res_data;
+    int *res_data;
 
     str_data_para *p_pre_data;
     str_judge_data *p_res_judge;
@@ -44,6 +45,8 @@ void main(void)
     p_res_judge = &g_res_judge;
     // add codes to init res_judge
     // ...................
+    p_res_judge->n_tot   = 0;
+    p_res_judge->err_num = 0;
 
     p_simu_para = &g_simu_para;
     p_simu_para->Simu_para_init(p_pre_data);

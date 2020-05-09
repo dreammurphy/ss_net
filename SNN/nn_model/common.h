@@ -28,8 +28,9 @@ typedef struct str_judge_data
 {
     public:
     float *judge_data;
-    int err_num;
-    int err_rate;
+    unsigned long int err_num=0;
+    unsigned long int n_tot=0;
+    float err_rate;
 
 }str_judge_data; 
 

@@ -18,12 +18,12 @@ void Neuron_sim_one(void *test_data, NN_model_c *p_nn, void *res_data);
 
 
 // Judge_pro, do judgement
-void Judge_pro(int idx, void *outY, void *ouIdeal, str_judge_data *judgeRes);
+void Judge_pro(int idx, void *outY, void *ouIdeal, str_judge_data *p_judgeRes);
 
 // Neuron_sim_process, using NN process, get the results
 void Neuron_sim_process(void *test_data, NN_model_c *p_nn, void *res_data);
 
 // for debug
-void Debug_analyze(str_judge_data *res_data);
+void Debug_analyze(str_judge_data *p_judgeRes);
 
 #endif
