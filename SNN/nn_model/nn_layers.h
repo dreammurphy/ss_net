@@ -1,7 +1,7 @@
 #ifndef _NN_LAYERS_H_
 #define _NN_LAYERS_H_
 
-#include "common.h"
+#include "../utils/common.h"
 
 class NN_layer_c
 {

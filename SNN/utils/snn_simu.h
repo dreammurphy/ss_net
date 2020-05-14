@@ -2,7 +2,7 @@
 #define _SNN_SIMU_H_
 
 #include "common.h"
-#include "nn_model.h"
+#include "../nn_model/nn_model.h"
 
 // Generator spike sequences, input:in_data, size:n_in, output:spike_buf,size:n_tot*n_in
 void Spike_input_generator(char *spike_buf, int n_tot, void *in_data, int n_in, int mod_se);

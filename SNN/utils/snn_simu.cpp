@@ -50,6 +50,27 @@ void Judge_pro(int idx, void *outY, void *ouIdeal, str_judge_data *p_judgeRes)
 // Neuron_sim_process, using NN process, get the results
 void Neuron_sim_process(void *test_data, NN_model_c *p_nn, void *res_data)
 {
+	char spike_buf[2];
+	int n_tot = 10;
+	int *in_data = (int *)test_data;
+	int n_in = 0;
+	int mod_se = 0;
+//	NN_model_c p_nn[2];
+	int tidx = 0;
+// Generator spike sequences, input:in_data, size:n_in, output:spike_buf,size:n_tot*n_in
+Spike_input_generator(spike_buf, n_tot, in_data, n_in, mod_se);
+
+// Neuron_NN_pro, suing nn_model process function, results in res_data
+Neuron_NN_pro(tidx, (void *)in_data, p_nn, res_data);
+
+
+// Neuron_out_pro, do summary
+Neuron_out_pro(tidx, n_tot, res_data, res_data, res_data);
+
+
+// Neuron_sim_one,using NN process, simulate one case, results in res_data
+Neuron_sim_one(test_data, p_nn, res_data);
+
 
 
 }
@@ -58,5 +79,5 @@ void Neuron_sim_process(void *test_data, NN_model_c *p_nn, void *res_data)
 void Debug_analyze(str_judge_data *p_judgeRes)
 {
     p_judgeRes->err_rate = float(p_judgeRes->err_num) /p_judgeRes->n_tot;
-    printf("Simulation Results, the accuracy is %.3f, Total Data is %ld !\n",100*p_judgeRes->err_rate,p_judgeRes->n_tot);
+    printf("Simulation Results, the accuracy is %.3f%%, Total Data is %ld !\n",100*p_judgeRes->err_rate,p_judgeRes->n_tot);
 }
