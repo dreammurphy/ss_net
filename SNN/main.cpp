@@ -1,9 +1,11 @@
 #include "stdio.h"
 
-#include "common.h"
-#include "nn_model.h"
-#include "snn_simu.h"
-#include "pre_data.h"
+
+#include "./utils/common.h"
+#include "./nn_model/nn_model.h"
+#include "./utils/snn_simu.h"
+#include "./utils/pre_data.h"
+
 
 
 #define TEST_MAP_MAX_SIZE       (32*32)
@@ -17,7 +19,7 @@ str_judge_data      g_res_judge;
 Simu_para_c         g_simu_para;
 NN_model_c          g_nn_mod;
 
-void main(void)
+int main(void)
 {
     float *test_x, *train_x, *inX;;
     int *test_y, *train_y;
@@ -62,6 +64,7 @@ void main(void)
     inX = test_x;
 
     /* then, do NN process */
+	p_simu_para->n_tot = 26;
     for(idx=0; idx<p_simu_para->n_tot; idx++)
     {
         p_simu_para->Get_test_data(idx, p_pre_data,inX,test_y);
@@ -72,5 +75,5 @@ void main(void)
     /* finally, do summary */
     Debug_analyze(p_res_judge);
 
-
+    return 0;
 }
