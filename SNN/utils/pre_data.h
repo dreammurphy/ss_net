@@ -7,9 +7,14 @@
 class Simu_para_c
 {
     public:
-    int tidx,n_tot;
+    uLint_t n_tot;
+	uLint_t t_idx, t_simu;
     float *test_x,*test_y,*train_x,*trian_y;
     float *this_x, *this_y; // for each time index, get one
+    char * p_simu_spike_init;
+	str_data_para *p_in_data_para;
+	uLint_t in_size;
+		
     Simu_para_c();
     ~Simu_para_c();
 

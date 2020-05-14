@@ -12,7 +12,8 @@ Simu_para_c::~Simu_para_c()
 
 void Simu_para_c::Simu_para_init(str_data_para *p_data_para)
 {
-
+	p_in_data_para = p_data_para;
+	in_size = p_in_data_para->nx * p_in_data_para->ny * p_in_data_para->nf;
 }
 
 // Get_test_data, get test_x,test_y
