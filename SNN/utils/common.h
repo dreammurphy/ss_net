@@ -4,6 +4,11 @@
 
 #include "stdio.h"
 
+#define TEST_MAP_MAX_SIZE       (1<<24)// 16M
+#define TEST_LABEL_OUT_MAX_SIZE    (10)
+#define LAYER_MAX_NUMBER			(128) // not using malloc function
+
+
 typedef enum
 {
     LAYER_FCN = 0,
@@ -40,8 +45,15 @@ typedef struct str_judge_data
 
 }str_judge_data; 
 
+typedef struct str_calc_para
+{
 
-
+	float		*p_weight;
+	float		*p_bias;
+	int Ix,Iy,Ci,Ox,Oy,Co,Kx,Ky,stride_x,stride_y;
+	uLint_t size_out;
+	char bias_en;
+} str_calc_para;
 
 
 

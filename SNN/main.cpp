@@ -12,8 +12,6 @@
 #include "pre_data.h"
 #endif
 
-#define TEST_MAP_MAX_SIZE       (32*32)
-#define TEST_LABEL_OUT_MAX_SIZE    (10)
 float g_InBuffer[TEST_MAP_MAX_SIZE];
 int g_IdeaBuffer[TEST_LABEL_OUT_MAX_SIZE]; // as Ideal res
 int g_OuBuffer[TEST_LABEL_OUT_MAX_SIZE];
