@@ -14,7 +14,7 @@ void func_pooling_process(void)
 
 void func_conv2d_spike_pro(char *inX, float *ouX, float *p_wei,int Iy, int Kx, int Ky)
 {
-	int coidx, cidx;
+//	int coidx, cidx;
 	int kxidx, kyidx;
 	char *p_ix, *p_iy;
 	float *p_kx, *p_ky;
@@ -42,17 +42,15 @@ void func_conv2d_spike_pro(char *inX, float *ouX, float *p_wei,int Iy, int Kx, i
 void func_fcn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 {
 	int coidx, cidx;
-	float tmp_sum0;
 	float *p_wei, *p_ko;
 
-	if ((p_calc_para->kx != 1) || (p_calc_para->ky != 1) || (p_calc_para->Ix != 1) \
+	if ((p_calc_para->Kx != 1) || (p_calc_para->Ky != 1) || (p_calc_para->Ix != 1) \
 		|| (p_calc_para->Iy != 1))
 	{
 		printf("Error in func_fcn_spike_pro,parametes not correct. Need debug! \n");
 		return;
 	}
 
-	tmp_sum0 = 0;
 	p_wei = p_calc_para->p_weight;
 	for(cidx=0; cidx< p_calc_para->Ci; cidx++)
 	{
@@ -76,8 +74,8 @@ void func_cnn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 	int oyidx,oxidx,ocidx,icidx;
 	uLint_t map_size_o,map_size_i, map_ker;
 	float *p_co, *p_xo, *p_yo;
-	float *p_ci, *p_xi, *p_yi;
-	float *p_ko, *p_ki, *p_kx, *p_ky;
+	char *p_ci, *p_xi;  //, *p_yi;
+	float *p_ko, *p_ki, *p_kx; //, *p_ky;
 
 	float tmp_sum0;
 

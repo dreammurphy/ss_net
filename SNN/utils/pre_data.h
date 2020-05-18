@@ -8,7 +8,7 @@ class Simu_para_c
 {
     public:
     uLint_t n_tot;
-	uLint_t t_idx, t_simu;
+	uint_t t_idx, t_simu;
     float *test_x,*test_y,*train_x,*trian_y;
     float *this_x, *this_y; // for each time index, get one
     char * p_simu_spike_init;
@@ -28,6 +28,7 @@ class Simu_para_c
 };
 
 
+void func_pre_data_init(str_data_para *p_pre_data);
 
 
 

@@ -1,7 +1,7 @@
 #include "nn_model.h"
 
 char g_inX_Buffer[TEST_MAP_MAX_SIZE];
-NN_layer_c g_Layers[LAYER_MAX_NUMBER];
+//NN_layer_c g_Layers[LAYER_MAX_NUMBER];
 
 NN_model_c::NN_model_c()
 {
@@ -29,7 +29,7 @@ void NN_model_c::NN_data_input_trans(float *inX,char *outX,Simu_para_c *p_simu_p
 
 }
 
-void NN_out_pro_one(void *outX);
+void NN_model_c::NN_out_pro_one(void *outX)
 {
 
 }

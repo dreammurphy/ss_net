@@ -1,16 +1,33 @@
 #include "nn_layers.h"
-
-
+#include "calc_util.h"
+#include "string.h"
+#include "stdlib.h"
 
 NN_layer_c::NN_layer_c()
 {
+	mem_ini_flag = 0;
 	layer_id = 0;
 	layer_type = LAYER_OTHERS;  // Not Init
 	layer_lif_mod = NEURON_LIF_MODE;
+	p_out = NULL;
+	p_spikes = NULL;
+	p_sum_spikes = NULL;
+	p_mem = NULL;	
 }
 
 NN_layer_c::~NN_layer_c()
 {
+	if (mem_ini_flag != 0)
+	{
+		free(p_mem);
+		p_mem = NULL;
+		free(p_sum_spikes);
+		p_sum_spikes = NULL;
+		free(p_spikes);
+		p_spikes = NULL;
+		p_out = NULL;
+	}
+	mem_ini_flag = 0;
 
 }
 
@@ -18,11 +35,38 @@ void NN_layer_c::NN_layer_init(int id0)
 {
 	layer_id = id0;
 
-	p_out = spike_buf;
-	p_spikes = spike_buf;
-	p_sum_spikes = spike_sum_buf;
-	p_mem = mem_buf;
+//	p_out = spike_buf;
+//	p_spikes = spike_buf;
+//	p_sum_spikes = spike_sum_buf;
+//	p_mem = mem_buf;
 
+}
+
+void NN_layer_c::NN_layer_init_calc_para(str_calc_para *p_calc_para0)
+{
+	// copy
+	p_calc_para = &layer_calc_para;
+	memcpy(p_calc_para, p_calc_para0, sizeof(str_calc_para));
+	p_calc_para->size_out = p_calc_para->Ox*p_calc_para->Oy*p_calc_para->Co;
+	p_mem = (float *)malloc(p_calc_para->size_out*sizeof(float));
+	p_sum_spikes = (int *)malloc(p_calc_para->size_out*sizeof(int));
+	p_spikes = (char *)malloc(p_calc_para->size_out*sizeof(char));
+//	p_out = (char *)malloc(p_calc_para->size_out*sizeof(char));
+	p_out = p_spikes; // same as spike ?
+
+	mem_ini_flag = 1;
+	if((p_mem==NULL) || (p_sum_spikes == NULL) || (p_spikes == NULL))
+	{
+		printf("in NN_layer_init_calc_para, Not enough memory, check it!\n");
+		free(p_mem);
+		p_mem = NULL;
+		free(p_sum_spikes);
+		p_sum_spikes = NULL;
+		free(p_spikes);
+		p_spikes = NULL;
+		p_out = NULL;
+		mem_ini_flag = 0;
+	}
 }
 
 void NN_layer_c::NN_layer_init_W(void)
@@ -44,6 +88,11 @@ void NN_layer_c::NN_layer_reset(void)
 {
 	uLint_t idx;
 	uLint_t size_tot;
+	if (mem_ini_flag == 0)
+	{
+		printf("In NN_layer_reset, before reset, should init memory pointers. \nDebug\n");
+		return;
+	}
 	size_tot = p_calc_para->size_out;
 	for(idx=0; idx<size_tot; idx++)
 	{
@@ -62,7 +111,7 @@ void NN_layer_c::NN_layer_process(char * inX)
 	uLint_t size_tot;
 	size_tot = p_calc_para->size_out;
 
-	switch(layer_type):
+	switch(layer_type)
 	{
 		case LAYER_FCN:
 			func_fcn_spike_pro(inX, p_mem, p_calc_para);

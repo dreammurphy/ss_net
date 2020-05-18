@@ -39,23 +39,26 @@ void Neuron_get_res(int tidx, void *outY, void *res_data)
 // Neuron_sim_one,using NN process, simulate one case, results in res_data
 void Neuron_sim_one(void *test_data, NN_model_c *p_nn, void *res_data, str_judge_data*p_res_judge)
 {
-	uLint_t n_tot = p_nn->p_simu_para->n_tot;
-	int t_sim = p_nn->p_simu_para->t_simu;
 	uLint_t n_in = p_nn->p_simu_para->in_size;
 	char *spike_buf = p_nn->p_in_spike;
-	int tidx;
+	uint_t tidx,t_sim;
 	int mod_se;
 
-	float *inX, *outX, *outY;
-	float *deb_info;
+//	char *inX;
+//	float *outX;
+	float *outY;
+//	float *deb_info;
 
 	mod_se = 0;
-	
-	for(tidx=0; tidx<n_tot; tidx++)
+	t_sim = p_nn->p_simu_para->t_simu;
+	for(tidx=0; tidx<t_sim; tidx++)
 	{
 		Spike_input_gen_one(spike_buf, tidx, t_sim, test_data, n_in, mod_se);
-		p_nn->Neuron_NN_pro(tidx,float * inX,float * outX);
-		Neuron_out_pro(tidx, t_sim,void * outX,void * outY,void * deb_info);
+
+//		p_nn->Neuron_NN_pro(tidx,float * inX,float * outX);
+//		Neuron_out_pro(tidx, t_sim,void * outX,void * outY,void * deb_info);
+
+		outY = (float *)test_data; // -- should be delet, only for compiler debug
 		Neuron_get_res(tidx, outY, res_data);
 
 
@@ -68,12 +71,14 @@ void Neuron_sim_one(void *test_data, NN_model_c *p_nn, void *res_data, str_judge
 
 
 // Judge_pro, do judgement
-void Judge_pro(int idx, void *outY, void *ouIdeal, str_judge_data *p_judgeRes)
+void Judge_pro(uLint_t idx, void *outY, void *ouIdeal, str_judge_data *p_judgeRes)
 {
+#if 0
     int *p_out, *p_ideal;
 
     p_out = (int *)outY;
     p_ideal = (int *)ouIdeal;
+#endif
 
     /* judge error */
     if ((idx % 16) ==3)
@@ -87,11 +92,13 @@ void Judge_pro(int idx, void *outY, void *ouIdeal, str_judge_data *p_judgeRes)
 // Neuron_sim_process, using NN process, get the results
 void Neuron_sim_process(void *test_data, NN_model_c *p_nn, void *res_data,str_judge_data *p_res_judge)
 {
+#if 0
 	char spike_buf[2];
 	int n_tot = 10;
 	int *in_data = (int *)test_data;
 	int n_in = 0;
 	int mod_se = 0;
+#endif
 
 	p_nn->NN_model_reset();
 	Neuron_sim_one(test_data, p_nn, res_data,p_res_judge);
