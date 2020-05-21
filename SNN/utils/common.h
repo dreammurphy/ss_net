@@ -4,6 +4,8 @@
 
 #include "stdio.h"
 
+#define NULL						(0)
+
 #define TEST_MAP_MAX_SIZE       (1<<24)// 16M
 #define TEST_LABEL_OUT_MAX_SIZE    (10)
 #define LAYER_MAX_NUMBER			(128) // not using malloc function
@@ -24,13 +26,18 @@ typedef unsigned long int uLint_t;
 typedef unsigned int uint_t;
 
 
+#define FREE_POINT(p)  {if (NULL != (p)) {free((p)); (p)=NULL;}}
+
+
+
 /* str_data_para: Origin Data */
 typedef struct str_data_para
 {
     public:
-    char *para;
+    char *para=NULL;
 	uint_t nx,ny,nf; // input map Size, x, y and features(CI)
 	uint_t outf;     // output features(Co)
+	uLint_t n_tot;
 
 }str_data_para; 
 
@@ -48,8 +55,8 @@ typedef struct str_judge_data
 typedef struct str_calc_para
 {
 
-	float		*p_weight;
-	float		*p_bias;
+	float		*p_weight=NULL;
+	float		*p_bias=NULL;
 	int Ix,Iy,Ci,Ox,Oy,Co,Kx,Ky,stride_x,stride_y;
 	uLint_t size_out;
 	char bias_en;

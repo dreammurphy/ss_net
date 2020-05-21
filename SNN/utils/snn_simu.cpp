@@ -4,9 +4,23 @@
 
 
 // Generator spike sequences, input:in_data, size:n_in, output:spike_buf,size:n_in; do n_tot get full spikes
-void Spike_input_gen_one(char *spike_buf, int tidx, int t_sim, void *in_data, uLint_t n_in, int mod_se)
+void Spike_input_gen_one(char *spike_out, int tidx, int t_sim, void *in_data, uLint_t n_in, int mod_se)
 {
+	float *inX;
 
+	inX = (float*)in_data;
+	if (mod_se == 0) // Here for XOR, ignore tidx, t_sim
+	{
+		int idx;
+		for(idx=0; idx<n_in; idx++)
+		{
+			if (inX[idx] > 0.5)
+				spike_out[idx] = 1;
+			else
+				spike_out[idx] = 0;
+		}
+	}
+	
 }
 
 // Generator spike sequences, input:in_data, size:n_in, output:spike_buf,size:t_sim*n_in
@@ -37,7 +51,7 @@ void Neuron_get_res(int tidx, void *outY, void *res_data)
 
 
 // Neuron_sim_one,using NN process, simulate one case, results in res_data
-void Neuron_sim_one(void *test_data, NN_model_c *p_nn, void *res_data, str_judge_data*p_res_judge)
+void Neuron_sim_one(void *in_data, NN_model_c *p_nn, void *res_data, str_judge_data*p_res_judge)
 {
 	uLint_t n_in = p_nn->p_simu_para->in_size;
 	char *spike_buf = p_nn->p_in_spike;
@@ -45,20 +59,22 @@ void Neuron_sim_one(void *test_data, NN_model_c *p_nn, void *res_data, str_judge
 	int mod_se;
 
 //	char *inX;
-//	float *outX;
+	float *outX;
 	float *outY;
 //	float *deb_info;
 
-	mod_se = 0;
+	mod_se = SPIKE_MODE_SEL;
 	t_sim = p_nn->p_simu_para->t_simu;
+	outX = p_nn->p_layer_out_buf_max;
+
 	for(tidx=0; tidx<t_sim; tidx++)
 	{
-		Spike_input_gen_one(spike_buf, tidx, t_sim, test_data, n_in, mod_se);
+		Spike_input_gen_one(spike_buf, tidx, t_sim, in_data, n_in, mod_se);
 
-//		p_nn->Neuron_NN_pro(tidx,float * inX,float * outX);
-//		Neuron_out_pro(tidx, t_sim,void * outX,void * outY,void * deb_info);
+		p_nn->Neuron_NN_pro(tidx, spike_buf, outX);
+	//	Neuron_out_pro(tidx, t_sim,void * outX,void * outY,void * deb_info);
 
-		outY = (float *)test_data; // -- should be delet, only for compiler debug
+		outY = (float *)res_data; // -- should be delet, only for compiler debug
 		Neuron_get_res(tidx, outY, res_data);
 
 
@@ -97,7 +113,7 @@ void Neuron_sim_process(void *test_data, NN_model_c *p_nn, void *res_data,str_ju
 	int n_tot = 10;
 	int *in_data = (int *)test_data;
 	int n_in = 0;
-	int mod_se = 0;
+	int mod_se = SPIKE_MODE_SEL;
 #endif
 
 	p_nn->NN_model_reset();

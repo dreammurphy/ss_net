@@ -17,21 +17,38 @@ NN_layer_c::NN_layer_c()
 
 NN_layer_c::~NN_layer_c()
 {
-	if (mem_ini_flag != 0)
-	{
-		free(p_mem);
-		p_mem = NULL;
-		free(p_sum_spikes);
-		p_sum_spikes = NULL;
-		free(p_spikes);
-		p_spikes = NULL;
-		p_out = NULL;
-	}
-	mem_ini_flag = 0;
+	printf("In ~NN_layer_c, free memory, flag=%d\n",mem_ini_flag);
+
+	nn_layer_free();
 
 }
 
-void NN_layer_c::NN_layer_init(int id0)
+void NN_layer_c::nn_layer_free(void)
+{
+	printf("In nn_layer_free, free memory, flag=%d\n",mem_ini_flag);
+
+	if (mem_ini_flag != 0)
+	{
+		FREE_POINT(p_mem);
+		FREE_POINT(p_sum_spikes);
+		FREE_POINT(p_spikes);
+		p_out = NULL;
+		
+		mem_ini_flag = 0;
+
+		FREE_POINT(p_calc_para->p_weight);
+		FREE_POINT(p_calc_para->p_bias);
+	
+	}
+	else
+	{
+		printf("In ~NN_layer_c, Not Need free memory");
+
+	}
+}
+
+
+void NN_layer_c::NN_layer_init_id(int id0)
 {
 	layer_id = id0;
 
@@ -42,12 +59,24 @@ void NN_layer_c::NN_layer_init(int id0)
 
 }
 
+void NN_layer_c::NN_layer_init_type(LayerType type0)
+{
+	layer_type = type0;
+
+//	p_out = spike_buf;
+//	p_spikes = spike_buf;
+//	p_sum_spikes = spike_sum_buf;
+//	p_mem = mem_buf;
+
+}
+
+
 void NN_layer_c::NN_layer_init_calc_para(str_calc_para *p_calc_para0)
 {
 	// copy
 	p_calc_para = &layer_calc_para;
 	memcpy(p_calc_para, p_calc_para0, sizeof(str_calc_para));
-	p_calc_para->size_out = p_calc_para->Ox*p_calc_para->Oy*p_calc_para->Co;
+//	p_calc_para->size_out = p_calc_para->Ox*p_calc_para->Oy*p_calc_para->Co;
 	p_mem = (float *)malloc(p_calc_para->size_out*sizeof(float));
 	p_sum_spikes = (int *)malloc(p_calc_para->size_out*sizeof(int));
 	p_spikes = (char *)malloc(p_calc_para->size_out*sizeof(char));
@@ -58,22 +87,27 @@ void NN_layer_c::NN_layer_init_calc_para(str_calc_para *p_calc_para0)
 	if((p_mem==NULL) || (p_sum_spikes == NULL) || (p_spikes == NULL))
 	{
 		printf("in NN_layer_init_calc_para, Not enough memory, check it!\n");
-		free(p_mem);
-		p_mem = NULL;
-		free(p_sum_spikes);
-		p_sum_spikes = NULL;
-		free(p_spikes);
-		p_spikes = NULL;
-		p_out = NULL;
-		mem_ini_flag = 0;
+		nn_layer_free();
+		return;
 	}
+
+	NN_layer_reset();
+
 }
 
-void NN_layer_c::NN_layer_init_W(void)
+void NN_layer_c::NN_layer_init_W((float *wei, float*bia, float thod))
 {
 	uLint_t idx;
 	uLint_t size_tot;
+	str_calc_para *p_calc_para0;
+
+	
 	size_tot = p_calc_para->size_out;
+	if (mem_ini_flag == 0)
+	{
+		printf("Error in NN_layer_init_W, should call NN_layer_init_calc_para before init weight.Debug\n");
+		return;
+	}
 	for(idx=0; idx<size_tot; idx++)
 	{
 		p_out[idx]=0;
@@ -81,6 +115,7 @@ void NN_layer_c::NN_layer_init_W(void)
 		p_sum_spikes[idx]=0;
 		p_mem[idx] = 0; 
 	}
+//	str_calc_para *p_calc_para0;
 
 }
 
@@ -95,13 +130,13 @@ void NN_layer_c::NN_layer_reset(void)
 	}
 	size_tot = p_calc_para->size_out;
 	for(idx=0; idx<size_tot; idx++)
-	{
 		p_out[idx]=0;
+	for(idx=0; idx<size_tot; idx++)
 		p_spikes[idx]=0;
+	for(idx=0; idx<size_tot; idx++)
 		p_sum_spikes[idx]=0;
+	for(idx=0; idx<size_tot; idx++)
 		p_mem[idx] = 0; 
-	}
-
 
 }
 

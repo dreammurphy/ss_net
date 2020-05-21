@@ -50,6 +50,7 @@ int main(void)
     /* First, init parameters and NN */
     p_pre_data = &g_pre_data; 
     // add codes to init pre_data
+    func_pre_data_init(p_pre_data);
     // ...................
 
     p_res_judge = &g_res_judge;
@@ -75,7 +76,6 @@ int main(void)
     inX = test_x;
 
     /* then, do NN process */
-	p_simu_para->n_tot = 26;
     for(idx=0; idx<p_simu_para->n_tot; idx++)
     {
         p_simu_para->Get_test_data(idx, p_pre_data,inX,test_y);

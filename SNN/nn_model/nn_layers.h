@@ -31,10 +31,12 @@ class NN_layer_c
 
     NN_layer_c();
     ~NN_layer_c();
+	void nn_layer_free(void);
 
-    void NN_layer_init(int id0);
+    void NN_layer_init_id(int id0);
+	void NN_layer_init_type(LayerType type0);
     void NN_layer_init_calc_para(str_calc_para *p_calc_para0);
-    void NN_layer_init_W(void);
+    void NN_layer_init_W(float *wei, float*bia, float thod);
     void NN_layer_reset(void);
 
     void NN_layer_process(char * inX);

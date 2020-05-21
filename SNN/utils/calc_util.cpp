@@ -62,7 +62,7 @@ void func_fcn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 			for(coidx=0; coidx<p_calc_para->Co; coidx++)
 			{
 				ouX[coidx] += p_ko[0];
-				p_ko += p_calc_para->Ci;
+				p_ko += p_calc_para->Ci; // Next Ker point
 			}
 		}
 	}
