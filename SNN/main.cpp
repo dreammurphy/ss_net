@@ -14,7 +14,7 @@
 
 float g_InBuffer[TEST_MAP_MAX_SIZE];
 int g_IdeaBuffer[TEST_LABEL_OUT_MAX_SIZE]; // as Ideal res
-int g_OuBuffer[TEST_LABEL_OUT_MAX_SIZE];
+float g_OuBuffer[TEST_LABEL_OUT_MAX_SIZE];
 char g_InSpikeOne[TEST_MAP_MAX_SIZE];
 
 str_data_para       g_pre_data;
@@ -31,7 +31,7 @@ int main(void)
 //	float *train_;,
 //	int   *train_y;
     uLint_t idx;
-    int *res_data;
+    float *res_data;
 
     str_data_para *p_pre_data;
     str_judge_data *p_res_judge;

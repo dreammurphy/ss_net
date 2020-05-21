@@ -16,7 +16,7 @@ void Spike_input_gen_one(char *spike_out, int tidx, int t_sim, void *in_data, uL
 void Neuron_NN_pro(int tidx, void *inX, NN_model_c *p_nn, void*res_data);
 
 // Neuron_out_pro, do summary
-void Neuron_out_pro(uLint_t tidx, int t_sim, void* outX, void *outY, void* deb_info);
+void Neuron_out_pro(uLint_t tidx, int t_sim, void* inX, void *outY, void* deb_info);
 
 // Neuron_sim_one,using NN process, simulate one case, results in res_data
 void Neuron_sim_one(void *in_data, NN_model_c *p_nn, void *res_data, str_judge_data* p_judgeRes);

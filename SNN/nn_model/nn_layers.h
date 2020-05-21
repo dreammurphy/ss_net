@@ -31,6 +31,8 @@ class NN_layer_c
 
     NN_layer_c();
     ~NN_layer_c();
+	
+    void NN_layer_init_base(void);
 	void nn_layer_free(void);
 
     void NN_layer_init_id(int id0);

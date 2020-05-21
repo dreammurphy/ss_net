@@ -5,14 +5,7 @@
 
 NN_layer_c::NN_layer_c()
 {
-	mem_ini_flag = 0;
-	layer_id = 0;
-	layer_type = LAYER_OTHERS;  // Not Init
-	layer_lif_mod = NEURON_LIF_MODE;
-	p_out = NULL;
-	p_spikes = NULL;
-	p_sum_spikes = NULL;
-	p_mem = NULL;	
+	NN_layer_init_base();
 }
 
 NN_layer_c::~NN_layer_c()
@@ -23,9 +16,26 @@ NN_layer_c::~NN_layer_c()
 
 }
 
+void NN_layer_c::NN_layer_init_base(void) // could only be called before init others
+{
+	mem_ini_flag = 0;
+	layer_id = 0;
+	layer_type = LAYER_OTHERS;  // Not Init
+	layer_lif_mod = NEURON_LIF_MODE;
+	p_out = NULL;
+	p_spikes = NULL;
+	p_sum_spikes = NULL;
+	p_mem = NULL;	
+	p_calc_para = &layer_calc_para;
+	p_calc_para->p_weight = NULL;
+	p_calc_para->p_bias   = NULL;
+	
+}
+
+
 void NN_layer_c::nn_layer_free(void)
 {
-	printf("In nn_layer_free, free memory, flag=%d\n",mem_ini_flag);
+	printf("In nn_layer_free, free memory, flag=%d,",mem_ini_flag);
 
 	if (mem_ini_flag != 0)
 	{
@@ -39,10 +49,11 @@ void NN_layer_c::nn_layer_free(void)
 		FREE_POINT(p_calc_para->p_weight);
 		FREE_POINT(p_calc_para->p_bias);
 	
+		printf("Memory have been freed\n");
 	}
 	else
 	{
-		printf("In ~NN_layer_c, Not Need free memory");
+		printf(" Not Need free memory\n");
 
 	}
 }

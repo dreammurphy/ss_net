@@ -24,14 +24,14 @@ class NN_model_c
 NN_model_c();
 ~NN_model_c();
 
-void nn_get_layer_init(int idx);
+char nn_get_layer_init(int idx);
 void nn_model_free(void);
 
 int NN_buffer_init(void); // 0:Error, 1:Success, for p_inX_for_calc and p_layer_out_buf_max
 
 void NN_model_init(Simu_para_c *p_simu_para0);
 void NN_model_reset(void);
-void Neuron_NN_pro(int tidx, void *inX, float *outX); // forward
+void Neuron_NN_pro(int tidx, void *inX, void *outX); // forward
 
 
 void NN_data_input_trans(void *inX,char *outX, Simu_para_c *p_simu_para0);

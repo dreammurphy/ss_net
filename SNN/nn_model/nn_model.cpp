@@ -21,7 +21,7 @@ NN_model_c::NN_model_c()
 NN_model_c::~NN_model_c()
 {
 	printf("In ~NN_model_c, free memory, flag=%d\n",nn_init_flag);
-	int idx;
+	nn_model_free();
 	
 
 }
@@ -34,8 +34,9 @@ void NN_model_c::nn_model_free(void)
 	{
 		if (NULL != p_nn_layer[idx])
 		{
+			printf("\nLayer:%d free . ",idx);
 			p_nn_layer[idx]->nn_layer_free();
-			p_nn_layer[idx] = NULL;
+			FREE_POINT(p_nn_layer[idx]);
 		}
 		FREE_POINT(p_calc_para_buf[idx]);
 	}
@@ -53,7 +54,7 @@ float xor_wei0_0[2][2] = {{-0.5,0.5},{-0.75,0.75}};
 float xor_wei0_1[2][2] = {{-4.4,4.4},{6,-6}};
 float xor_bia0_0[2] = {0.5,0};
 float xor_bia0_1[2] = {1,-1};
-float xor_thed0[2] = [1,1];
+float xor_thed0[2] = {1,1};
 
 /* Here a xor example, need amend codes for others */
 void NN_model_c::NN_model_init(Simu_para_c *p_simu_para0)
@@ -67,7 +68,7 @@ int NN_model_c::NN_buffer_init(void)
 	p_layer_out_buf_max = (float *)malloc(sizeof(float) * size_out_max_c);
 	if (NULL == p_layer_out_buf_max)
 	{
-		printf("In NN_model_init_xor, memory is not enough for Layer data buffer, size if %ld, need debug \n",p_layer_out_buf_max);
+		printf("In NN_model_init_xor, memory is not enough for Layer data buffer, size if %ld, need debug \n",size_out_max_c);
 		nn_model_free();
 		return 0;
 	}
@@ -101,6 +102,12 @@ char NN_model_c::nn_get_layer_init(int idx)
 		nn_init_flag = 0;
 		return 0;
 	}
+	p_nn_layer[idx]->NN_layer_init_base();
+	if (idx == 0)
+	{
+		p_nn_layer[idx]->mem_ini_flag = 1;
+	}
+
 	return 1;
 }
 
@@ -108,7 +115,7 @@ char NN_model_c::nn_get_layer_init(int idx)
 void NN_model_c::NN_model_reset(void)
 {
 	int idx;
-	for(idx=0; idx<n_layer_tot; idx++)
+	for(idx=1; idx<n_layer_tot; idx++)
 	{
 		p_nn_layer[idx]->NN_layer_reset();
 	}
@@ -122,7 +129,7 @@ void NN_model_c::NN_data_input_trans(void *inX,char *outX,Simu_para_c *p_simu_pa
 	// Here for XOR, inX is type_char
 	char *p_in;
 	p_in = (char *)inX;
-	for(uLint_t idx; idx<p_simu_para0->in_size)
+	for(uLint_t idx; idx<p_simu_para0->in_size; idx++)
 	{
 		outX[idx] = p_in[idx];
 	}
@@ -130,12 +137,25 @@ void NN_model_c::NN_data_input_trans(void *inX,char *outX,Simu_para_c *p_simu_pa
 
 }
 
+// here just copy ? 
 void NN_model_c::NN_out_pro_one(void *outX)
 {
-
+	float *p_ou;
+	p_ou = (float *)outX;
+	//int *p_ou;
+	//p_ou = (int *)outX;
+	uLint_t size_out;
+	char *spike_in;
+	// init sum
+	size_out = p_calc_para_buf[n_layer_tot-1]->size_out;
+	spike_in = p_nn_layer[n_layer_tot-1]->p_spikes;
+	for(uLint_t idx=0; idx<size_out; idx++)
+	{
+		p_ou[idx] = spike_in[idx];
+	}
 }
 
-void NN_model_c::Neuron_NN_pro(int tidx, void *inX, float *outX)
+void NN_model_c::Neuron_NN_pro(int tidx, void *inX, void *outX)
 {
 	char *inX2;
 	int lay_idx;
@@ -148,8 +168,8 @@ void NN_model_c::Neuron_NN_pro(int tidx, void *inX, float *outX)
 		p_nn_layer[lay_idx]->NN_layer_process(inX2);
 		inX2 = p_nn_layer[lay_idx]->p_spikes;
 	}
-	// finally,
-	NN_out_pro_one(outX);
+
+	NN_out_pro_one(outX); // outX as sum
 }
 
 
@@ -194,8 +214,8 @@ void NN_model_c::NN_model_init_xor(Simu_para_c *p_simu_para0)
 			return;
 		}
 
-		float *wei0;
-		float *bia0;
+	//	float *wei0;
+	//	float *bia0;
 		str_calc_para * p_calc_para0 = (str_calc_para*)malloc(sizeof(str_calc_para));
 		if (NULL == p_calc_para0)
 		{
@@ -238,18 +258,28 @@ void NN_model_c::NN_model_init_xor(Simu_para_c *p_simu_para0)
 
 	p_calc_para_buf[1]->p_weight = &xor_wei0_0[0][0];
 	p_calc_para_buf[2]->p_weight = &xor_wei0_1[0][0];
-	p_calc_para_buf[1]->bia0 = &xor_bia0_0[0];
-	p_calc_para_buf[2]->bia0 = &xor_bia0_1[0];
+	p_calc_para_buf[1]->p_bias = &xor_bia0_0[0];
+	p_calc_para_buf[2]->p_bias = &xor_bia0_1[0];
 	for(idx=1; idx<n_layer_tot; idx++)
 	{
 		p_nn_layer[idx]->NN_layer_init_id(idx);
 		p_nn_layer[idx]->NN_layer_init_type(LAYER_FCN);
-		p_nn_layer[idx]->NN_layer_init_calc_para(p_nn_layer[idx]);
+		p_nn_layer[idx]->NN_layer_init_calc_para(p_calc_para_buf[idx]);
 	//	FREE_POINT(p_nn_layer[idx]);
 	};
 
 	nn_init_flag = 1;
-	
+
+	// check layers, for debug
+	printf("\nLayer 0 status, id=%d,type=%d,init_flg=%d\n",p_nn_layer[0]->layer_id,\
+		p_nn_layer[0]->layer_type,p_nn_layer[0]->mem_ini_flag);
+	for(idx=1; idx<n_layer_tot; idx++)
+	{
+		printf("Layer %d status, id=%d,type=%d,init_flg=%d,size=%ld\n",idx,p_nn_layer[idx]->layer_id,\
+			p_nn_layer[idx]->layer_type,p_nn_layer[idx]->mem_ini_flag,p_nn_layer[idx]->p_calc_para->size_out);
+
+
+	}
 }
 
 

@@ -38,9 +38,30 @@ void Neuron_NN_pro(int tidx, void *inX, NN_model_c *p_nn, void*res_data)
 }
 
 // Neuron_out_pro, do summary
-void Neuron_out_pro(int tidx, int t_sim, void* outX, void *outY, void* deb_info)
+void Neuron_out_pro(int tidx, int t_sim, uLint_t n, void* inX, void *outY, void* deb_info)
 {
+	float *p_in;
+	float *p_ou;
+	uLint_t idx;
+	p_in = (float *)inX;
+	p_ou = (float *)outY;
 
+	if (tidx == 0)
+	{
+		for(idx=0; idx< n; idx++)
+		{
+			p_ou[idx] = p_in[idx];
+		}
+
+	}
+	else
+	{
+		for(idx=0; idx< n; idx++)
+		{
+			p_ou[idx] += p_in[idx];
+		}
+		
+	}
 
 }
 
@@ -56,28 +77,30 @@ void Neuron_sim_one(void *in_data, NN_model_c *p_nn, void *res_data, str_judge_d
 	uLint_t n_in = p_nn->p_simu_para->in_size;
 	char *spike_buf = p_nn->p_in_spike;
 	uint_t tidx,t_sim;
+	uLint_t size_out;
 	int mod_se;
 
 //	char *inX;
 	float *outX;
 	float *outY;
-//	float *deb_info;
+	float deb_info[1]; // for compiler
+
 
 	mod_se = SPIKE_MODE_SEL;
 	t_sim = p_nn->p_simu_para->t_simu;
 	outX = p_nn->p_layer_out_buf_max;
+	size_out = p_nn->p_calc_para_buf[p_nn->n_layer_tot-1]->size_out;
 
 	for(tidx=0; tidx<t_sim; tidx++)
 	{
 		Spike_input_gen_one(spike_buf, tidx, t_sim, in_data, n_in, mod_se);
 
 		p_nn->Neuron_NN_pro(tidx, spike_buf, outX);
-	//	Neuron_out_pro(tidx, t_sim,void * outX,void * outY,void * deb_info);
+		
+		outY = (float *)res_data; // -- should be delete ?, only for compiler debug
+		Neuron_out_pro(tidx, t_sim, size_out, outX, outY, deb_info);
 
-		outY = (float *)res_data; // -- should be delet, only for compiler debug
-		Neuron_get_res(tidx, outY, res_data);
-
-
+	//	Neuron_get_res(tidx, outY, res_data);
 	}
 
 	// other process
@@ -96,13 +119,27 @@ void Judge_pro(uLint_t idx, void *outY, void *ouIdeal, str_judge_data *p_judgeRe
     p_ideal = (int *)ouIdeal;
 #endif
 
+	if (idx==0)
+		p_judgeRes->err_num = 0;
+		
+    p_judgeRes->n_tot++;
+
     /* judge error */
+    #if 0
     if ((idx % 16) ==3)
     {
 
         p_judgeRes->err_num++;
     }
-    p_judgeRes->n_tot++;
+	#endif
+    /* for XOR */
+    float *ou;
+    int *ideal;
+    ou = (float *)outY;
+    ideal = (int *)ouIdeal;
+    if (((ou[0]>0.5) ^ ideal[0]) != 0)
+    	p_judgeRes->err_num++;
+    
 }
 
 // Neuron_sim_process, using NN process, get the results
