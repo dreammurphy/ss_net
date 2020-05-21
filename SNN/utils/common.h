@@ -3,8 +3,9 @@
 
 
 #include "stdio.h"
+#include "stdlib.h"
 
-#define NULL						(0)
+// #define NULL						(0) //defined in stdio.h
 
 #define TEST_MAP_MAX_SIZE       (1<<24)// 16M
 #define TEST_LABEL_OUT_MAX_SIZE    (10)

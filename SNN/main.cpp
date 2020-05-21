@@ -76,12 +76,14 @@ int main(void)
     inX = test_x;
 
     /* then, do NN process */
+	printf("Total test case = %ld\n",p_simu_para->n_tot);
     for(idx=0; idx<p_simu_para->n_tot; idx++)
     {
         p_simu_para->Get_test_data(idx, p_pre_data,inX,test_y);
         Neuron_sim_process(inX,p_nn_mod,res_data,p_res_judge);
         Judge_pro(idx,res_data,test_y,p_res_judge);
     }
+	printf("Simulation End, the summary results:\n");
 
     /* finally, do summary */
     Analyze_process(p_res_judge,p_final_res);

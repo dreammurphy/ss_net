@@ -95,12 +95,15 @@ void NN_layer_c::NN_layer_init_calc_para(str_calc_para *p_calc_para0)
 
 }
 
-void NN_layer_c::NN_layer_init_W((float *wei, float*bia, float thod))
+void NN_layer_c::NN_layer_init_W(float *wei, float*bia, float thod)
 {
 	uLint_t idx;
 	uLint_t size_tot;
-	str_calc_para *p_calc_para0;
+	//str_calc_para *p_calc_para0;
 
+	wei = wei;  // for compiler
+	bia = bia;
+	thod = thod;
 	
 	size_tot = p_calc_para->size_out;
 	if (mem_ini_flag == 0)

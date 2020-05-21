@@ -11,7 +11,7 @@ void Spike_input_gen_one(char *spike_out, int tidx, int t_sim, void *in_data, uL
 	inX = (float*)in_data;
 	if (mod_se == 0) // Here for XOR, ignore tidx, t_sim
 	{
-		int idx;
+		uLint_t idx;
 		for(idx=0; idx<n_in; idx++)
 		{
 			if (inX[idx] > 0.5)
