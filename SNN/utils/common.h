@@ -12,6 +12,8 @@
 #define LAYER_MAX_NUMBER			(128) // not using malloc function
 
 
+#define SIMU_TIME_LEN				(20)
+
 typedef enum
 {
     LAYER_FCN = 0,

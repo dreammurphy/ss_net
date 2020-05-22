@@ -22,8 +22,7 @@ NN_model_c::~NN_model_c()
 {
 	printf("In ~NN_model_c, free memory, flag=%d\n",nn_init_flag);
 	nn_model_free();
-	
-
+	printf("In ~NN_model_c, free End\n");
 }
 
 void NN_model_c::nn_model_free(void)
@@ -51,10 +50,16 @@ int xor_ou_shape_buf[2][3] = {{1,1,2},{1,1,1}};
 int xor_ker_shape_buf[2][2] = {{1,1},{1,1}};
 int xor_stride_buf[2][2] = {{1,1,},{1,1}};
 float xor_wei0_0[2][2] = {{-0.5,0.5},{-0.75,0.75}};
-float xor_wei0_1[2][2] = {{-4.4,4.4},{6,-6}};
 float xor_bia0_0[2] = {0.5,0};
+
+#if 0
+float xor_wei0_1[2][2] = {{-4.5,4.5},{6,-6}};
 float xor_bia0_1[2] = {1,-1};
-float xor_thed0[2] = {1,1};
+#else
+float xor_wei0_1[1][2] = {{-4.5*2,6*2}};
+float xor_bia0_1[2] = {2,0};
+#endif
+float xor_thed0[2] = {1*0.95,1*0.95};
 
 /* Here a xor example, need amend codes for others */
 void NN_model_c::NN_model_init(Simu_para_c *p_simu_para0)
@@ -129,7 +134,7 @@ void NN_model_c::NN_data_input_trans(void *inX,char *outX,Simu_para_c *p_simu_pa
 	// Here for XOR, inX is type_char
 	char *p_in;
 	p_in = (char *)inX;
-	for(uLint_t idx; idx<p_simu_para0->in_size; idx++)
+	for(uLint_t idx=0; idx<p_simu_para0->in_size; idx++)
 	{
 		outX[idx] = p_in[idx];
 	}
@@ -161,6 +166,7 @@ void NN_model_c::Neuron_NN_pro(int tidx, void *inX, void *outX)
 	int lay_idx;
 	inX2 = p_inX_for_calc;
 
+
 	NN_data_input_trans(inX,inX2,p_simu_para);
 
 	for(lay_idx=1;lay_idx<n_layer_tot;lay_idx++)
@@ -170,6 +176,12 @@ void NN_model_c::Neuron_NN_pro(int tidx, void *inX, void *outX)
 	}
 
 	NN_out_pro_one(outX); // outX as sum
+
+	#if 0 // for debug
+	char *pX;
+	pX = (char *)inX;
+	printf("In:%d,%d, out:%d, mem:%f\n",pX[0],pX[1],p_nn_layer[n_layer_tot-1]->p_spikes[0],p_nn_layer[n_layer_tot-1]->p_mem[0]);
+	#endif
 }
 
 

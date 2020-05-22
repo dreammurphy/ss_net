@@ -43,6 +43,7 @@ void func_fcn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 {
 	int coidx, cidx;
 	float *p_wei, *p_ko;
+	float *p_bias;
 
 	if ((p_calc_para->Kx != 1) || (p_calc_para->Ky != 1) || (p_calc_para->Ix != 1) \
 		|| (p_calc_para->Iy != 1))
@@ -64,6 +65,14 @@ void func_fcn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 				ouX[coidx] += p_ko[0];
 				p_ko += p_calc_para->Ci; // Next Ker point
 			}
+		}
+	}
+	if(p_calc_para->bias_en != 0)
+	{	
+		p_bias = p_calc_para->p_bias;
+		for(coidx=0; coidx<p_calc_para->Co; coidx++)
+		{
+			ouX[coidx]+= p_bias[coidx];
 		}
 	}
 }

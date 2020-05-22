@@ -91,6 +91,7 @@ void Neuron_sim_one(void *in_data, NN_model_c *p_nn, void *res_data, str_judge_d
 	outX = p_nn->p_layer_out_buf_max;
 	size_out = p_nn->p_calc_para_buf[p_nn->n_layer_tot-1]->size_out;
 
+	printf("In data is for XOR, %f,%f\n",*((float *)in_data),*((float *)in_data+1));
 	for(tidx=0; tidx<t_sim; tidx++)
 	{
 		Spike_input_gen_one(spike_buf, tidx, t_sim, in_data, n_in, mod_se);
@@ -100,11 +101,17 @@ void Neuron_sim_one(void *in_data, NN_model_c *p_nn, void *res_data, str_judge_d
 		outY = (float *)res_data; // -- should be delete ?, only for compiler debug
 		Neuron_out_pro(tidx, t_sim, size_out, outX, outY, deb_info);
 
+		printf("tidx:%d,res:%f\n",tidx,outY[0]/(tidx+1));
 	//	Neuron_get_res(tidx, outY, res_data);
 	}
 
 	// other process
-	
+	float amp_div;
+	amp_div = 1.0/t_sim;
+	for(uLint_t sidx=0; sidx<size_out;sidx++)
+	{
+		outY[sidx] *= amp_div;
+	}
 
 }
 
@@ -138,7 +145,11 @@ void Judge_pro(uLint_t idx, void *outY, void *ouIdeal, str_judge_data *p_judgeRe
     ou = (float *)outY;
     ideal = (int *)ouIdeal;
     if (((ou[0]>0.5) ^ ideal[0]) != 0)
+    {
+    	//	for debug
+    	printf("out is %f, logic is %d, expected is %d\n",ou[0],(ou[0]>0.5),ideal[0]);
     	p_judgeRes->err_num++;
+    }
     
 }
 
@@ -169,7 +180,7 @@ void Debug_analyze(str_judge_data *p_judgeRes)
 void Analyze_process(str_judge_data *p_judgeRes, str_judge_data *p_fin_res)
 {
     p_fin_res->err_rate = float(p_judgeRes->err_num) /p_judgeRes->n_tot;
-    printf("Simulation Results, the accuracy is %.3f%%, Total Data is %ld !\n",100*p_fin_res->err_rate,p_judgeRes->n_tot);
+    printf("Simulation Results, the accuracy is %.3f%%, Total Data is %ld !\n",100*(1-p_fin_res->err_rate),p_judgeRes->n_tot);
 
 }
 

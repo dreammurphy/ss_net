@@ -13,7 +13,7 @@ NN_layer_c::~NN_layer_c()
 	printf("In ~NN_layer_c, free memory, flag=%d\n",mem_ini_flag);
 
 	nn_layer_free();
-
+	printf("In ~NN_layer_c, free end\n");
 }
 
 void NN_layer_c::NN_layer_init_base(void) // could only be called before init others
@@ -29,6 +29,7 @@ void NN_layer_c::NN_layer_init_base(void) // could only be called before init ot
 	p_calc_para = &layer_calc_para;
 	p_calc_para->p_weight = NULL;
 	p_calc_para->p_bias   = NULL;
+	p_calc_para->size_out = 0;
 	
 }
 
@@ -46,8 +47,8 @@ void NN_layer_c::nn_layer_free(void)
 		
 		mem_ini_flag = 0;
 
-		FREE_POINT(p_calc_para->p_weight);
-		FREE_POINT(p_calc_para->p_bias);
+//		FREE_POINT(p_calc_para->p_weight); 
+//		FREE_POINT(p_calc_para->p_bias);
 	
 		printf("Memory have been freed\n");
 	}

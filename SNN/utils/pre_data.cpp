@@ -13,7 +13,8 @@ void func_pre_data_init(str_data_para *p_pre_data)
 
 Simu_para_c::Simu_para_c()
 {
-
+	t_idx   = 0;
+	t_simu = SIMU_TIME_LEN;
 }
 
 Simu_para_c::~Simu_para_c()
@@ -23,16 +24,17 @@ Simu_para_c::~Simu_para_c()
 
 void Simu_para_c::Simu_para_init(str_data_para *p_data_para)
 {
+	t_idx   = 0;
+	t_simu = SIMU_TIME_LEN;
+
 	p_in_data_para = p_data_para;
 	in_size = p_in_data_para->nx * p_in_data_para->ny * p_in_data_para->nf;
 	n_tot = p_data_para->n_tot;
-	
-	
 }
 
 // for XOR
-float xor_buf_in[4][2] = {{0,0},{0,1},{1,0},{1,1}};
-int   xor_ou[4] = {0,1,1,0};
+float xor_buf_in[4][2] = {{1,0},{0,0},{1,1},{0,1}};
+int   xor_ou[4] = {1,0,0,1};
 
 // Get_test_data, get test_x,test_y
 void Simu_para_c::Get_test_data(int idx, str_data_para *p_param, void *out_x, void *out_y)
