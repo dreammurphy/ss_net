@@ -1,10 +1,10 @@
 #include "common.h"
 #include "snn_simu.h"
-
+#include "calc_util.h"
 
 
 // Generator spike sequences, input:in_data, size:n_in, output:spike_buf,size:n_in; do n_tot get full spikes
-void Spike_input_gen_one(char *spike_out, int tidx, int t_sim, void *in_data, uLint_t n_in, int mod_se)
+void Spike_input_gen_one(char *spike_out, int tidx, int t_sim, void *in_data, uLint_t n_in, int mod_se,NN_model_c *p_nn)
 {
 	float *inX;
 
@@ -20,11 +20,28 @@ void Spike_input_gen_one(char *spike_out, int tidx, int t_sim, void *in_data, uL
 				spike_out[idx] = 0;
 		}
 	}
-	
+	else if(mod_se == 1) // for others
+	{
+		p_nn->p_spike_gen->spike_gen_one(inX,spike_out, tidx,n_in);
+	}
+	else // ahead
+	{
+
+		uLint_t idx;
+		float tho;
+		for(idx=0; idx<n_in; idx++)
+		{
+			tho = n_in * inX[idx];
+			if (tidx < tho)
+				spike_out[idx] = 1;
+			else
+				spike_out[idx] = 0;
+		}
+	}
 }
 
 // Generator spike sequences, input:in_data, size:n_in, output:spike_buf,size:t_sim*n_in
-void Spike_input_generator(char *spike_buf, int t_sim, void *in_data, uLint_t n_in, int mod_se)
+void Spike_input_generator(char *spike_buf, int t_sim, void *in_data, uLint_t n_in, int mod_se,NN_model_c *p_nn)
 {
 
 
@@ -78,6 +95,7 @@ void Neuron_sim_one(void *in_data, NN_model_c *p_nn, void *res_data, str_judge_d
 	char *spike_buf = p_nn->p_in_spike;
 	uint_t tidx,t_sim;
 	uLint_t size_out;
+	uLint_t jud_idx;
 	int mod_se;
 
 //	char *inX;
@@ -90,20 +108,42 @@ void Neuron_sim_one(void *in_data, NN_model_c *p_nn, void *res_data, str_judge_d
 	t_sim = p_nn->p_simu_para->t_simu;
 	outX = p_nn->p_layer_out_buf_max;
 	size_out = p_nn->p_calc_para_buf[p_nn->n_layer_tot-1]->size_out;
-
+	
+#if (0 == CASE_TEST)
 	printf("In data is for XOR, %f,%f\n",*((float *)in_data),*((float *)in_data+1));
+#endif
 	for(tidx=0; tidx<t_sim; tidx++)
 	{
-		Spike_input_gen_one(spike_buf, tidx, t_sim, in_data, n_in, mod_se);
+		Spike_input_gen_one(spike_buf, tidx, t_sim, in_data, n_in, mod_se, p_nn);
 
 		p_nn->Neuron_NN_pro(tidx, spike_buf, outX);
 		
 		outY = (float *)res_data; // -- should be delete ?, only for compiler debug
 		Neuron_out_pro(tidx, t_sim, size_out, outX, outY, deb_info);
+		
+#if (0 == CASE_TEST)
+		printf("In Neuron_sim_one, tidx:%d,res:%f\n",tidx,outY[0]/(tidx+1));
+#elif (1 == CASE_TEST)
+		printf("tidx:%d,res:%.2f",tidx,outY[0]);
+		for(uLint_t sidx=1; sidx<size_out; sidx++)
+		{
+			printf(",%.2f",outY[sidx]);
+		}
+		printf("\n");
+#else
 
-		printf("tidx:%d,res:%f\n",tidx,outY[0]/(tidx+1));
+#endif
 	//	Neuron_get_res(tidx, outY, res_data);
 	}
+
+	#if (0 == CASE_TEST)
+	jud_idx = ((2*outY[0])>=t_sim); // for XOR
+	#elif (1 == CASE_TEST)
+	float   jud_va;
+	func_find_max(outY, size_out, &jud_idx, &jud_va);
+	#endif
+	
+	p_res_judge->judge_data = jud_idx;
 
 	// other process
 	float amp_div;
@@ -144,7 +184,8 @@ void Judge_pro(uLint_t idx, void *outY, void *ouIdeal, str_judge_data *p_judgeRe
     int *ideal;
     ou = (float *)outY;
     ideal = (int *)ouIdeal;
-    if (((ou[0]>0.5) ^ ideal[0]) != 0)
+//    if (((ou[0]>0.5) ^ ideal[0]) != 0)
+	if (p_judgeRes->judge_data != ideal[0])
     {
     	//	for debug
     	printf("out is %f, logic is %d, expected is %d\n",ou[0],(ou[0]>0.5),ideal[0]);

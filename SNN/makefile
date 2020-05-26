@@ -87,6 +87,10 @@ $(TARGET): $(OBJFILE)
 .PHONY : clean
 clean:
 	@echo $(OBJFILE)
-	@-del -rf $(TARGET)
-	@-del -rf $(allobj2)
+#	@-del -rf $(TARGET)
+#	@-del -rf $(allobj2)
+
+	del *.o
+	del nn_model\*.o
+	del utils\*.o
 	@echo clean done.

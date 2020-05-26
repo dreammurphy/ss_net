@@ -61,10 +61,24 @@ float xor_bia0_1[2] = {2,0};
 #endif
 float xor_thed0[2] = {1*0.95,1*0.95};
 
+float mnist_fcn_wei0_0[120][784];
+float mnist_fcn_wei0_1[60][120];
+float mnist_fcn_wei0_2[10][60];
+float mnist_fcn_bia0_0[120];
+float mnist_fcn_bia0_1[60];
+float mnist_fcn_bia0_2[10];
+
+
 /* Here a xor example, need amend codes for others */
 void NN_model_c::NN_model_init(Simu_para_c *p_simu_para0)
 {
+#if (0 == CASE_TEST)
 	NN_model_init_xor(p_simu_para0);
+#elif (1 == CASE_TEST)
+	NN_model_init_fcn(p_simu_para0);
+#else
+
+#endif
 
 }
 
@@ -75,17 +89,17 @@ int NN_model_c::NN_buffer_init(void)
 	{
 		printf("In NN_model_init_xor, memory is not enough for Layer data buffer, size if %ld, need debug \n",size_out_max_c);
 		nn_model_free();
-		return 0;
+		return 1;
 	}
 	p_inX_for_calc = (char *)malloc(sizeof(char) * p_simu_para->in_size);
 	if (NULL == p_inX_for_calc)
 	{
 		printf("In NN_model_init_xor, memory is not enough for First Input spike buffer, size if %ld, need debug \n",p_simu_para->in_size);
 		nn_model_free();
-		return 0;
+		return 1;
 	}
 
-	return 1;
+	return 0;
 }
 
 char NN_model_c::nn_get_layer_init(int idx)
@@ -150,13 +164,13 @@ void NN_model_c::NN_out_pro_one(void *outX)
 	//int *p_ou;
 	//p_ou = (int *)outX;
 	uLint_t size_out;
-	char *spike_in;
+	char *spike_ou;
 	// init sum
 	size_out = p_calc_para_buf[n_layer_tot-1]->size_out;
-	spike_in = p_nn_layer[n_layer_tot-1]->p_spikes;
+	spike_ou = p_nn_layer[n_layer_tot-1]->p_spikes;
 	for(uLint_t idx=0; idx<size_out; idx++)
 	{
-		p_ou[idx] = spike_in[idx];
+		p_ou[idx] = spike_ou[idx];
 	}
 }
 
@@ -198,7 +212,7 @@ void NN_model_c::NN_model_init_xor(Simu_para_c *p_simu_para0)
 	init_flg = nn_get_layer_init(0);
 	if (0 == init_flg)
 	{
-		printf("In NN_model_init-0, Not Enough memory, need debug\n");
+		printf("In NN_model_init_xor-0, Not Enough memory, need debug\n");
 		nn_model_free();
 		return;
 	}
@@ -265,7 +279,7 @@ void NN_model_c::NN_model_init_xor(Simu_para_c *p_simu_para0)
 		
 	}
 	size_out_max_c = size_out_max;
-	if (0 == NN_buffer_init())
+	if (0 != NN_buffer_init())
 		return;
 
 	p_calc_para_buf[1]->p_weight = &xor_wei0_0[0][0];
@@ -292,6 +306,184 @@ void NN_model_c::NN_model_init_xor(Simu_para_c *p_simu_para0)
 
 
 	}
+}
+
+
+/* Here a fcn-for mnist example,784*120*60*10 need amend codes for others */
+void NN_model_c::NN_model_init_fcn(Simu_para_c *p_simu_para0)
+{
+	char init_flg;
+	int idx;
+	uLint_t size_out_max;
+	p_simu_para = p_simu_para0;
+	p_in_spike = p_simu_para->p_simu_spike_init;
+	int size0[4] = {784,120,60,10};
+	char fn_str_0[] = "./data/ann.fcn1.weight.txt";
+	char fn_str_1[] = "./data/ann.fcn2.weight.txt";
+	char fn_str_2[] = "./data/ann.fcn3.weight.txt";
+	int bias_en0;
+	bias_en0 = 0; // this MNIST, bias set to zeros, disable
+	
+	// MNIST Model, FCN, 784-120-60-10
+	n_layer_tot = 4;
+	init_flg = nn_get_layer_init(0);
+	if (0 == init_flg)
+	{
+		printf("In NN_model_init_fcn-0, Not Enough memory, need debug\n");
+		nn_model_free();
+		return;
+	}
+	if (0!= func_mnist_wei_init(fn_str_0, mnist_fcn_wei0_0[0], mnist_fcn_bia0_0, size0[0], size0[1], 0))
+	{
+		printf("Error In NN_model_init_fcn-1, File could not open, need debug\n");
+		nn_model_free();
+		return;
+	}
+	if (0!= func_mnist_wei_init(fn_str_1, mnist_fcn_wei0_1[0], mnist_fcn_bia0_1, size0[1], size0[2], 0))
+	{
+		printf("Error In NN_model_init_fcn-2, File could not open, need debug\n");
+		nn_model_free();
+		return;
+	}
+	if (0!= func_mnist_wei_init(fn_str_2, mnist_fcn_wei0_2[0], mnist_fcn_bia0_2, size0[2], size0[3], 0))
+	{
+		printf("Error In NN_model_init_fcn-3, File could not open, need debug\n");
+		nn_model_free();
+		return;
+	}
+	// for debug
+	FILE * fp_wei0;
+	fp_wei0 = fopen("./data/de0.txt","w");
+	for(idx=0; idx<120; idx++)
+	{
+		fprintf(fp_wei0,"%d",idx);
+		for(int sidx=0; sidx<784; sidx++)
+		{
+			fprintf(fp_wei0,",%f",mnist_fcn_wei0_0[idx][sidx]);
+		}
+		fprintf(fp_wei0,"\n");
+	}
+	fclose(fp_wei0);
+
+	#if 0
+	{
+
+		float		*p_weight;
+		float		*p_bias;
+		int Ix,Iy,Ci,Ox,Oy,Co,Kx,Ky,stride_x,stride_y;
+		uLint_t size_out;
+		char bias_en;
+	} str_calc_para;
+	#endif
+
+	size_out_max = 0;
+	for(idx=1; idx<n_layer_tot; idx++)
+	{
+		init_flg = nn_get_layer_init(idx);
+		if (NULL == p_nn_layer[idx])
+		{
+			printf("In NN_model_init-%d, Not Enough memory, need debug\n",idx);
+			return;
+		}
+
+	//	float *wei0;
+	//	float *bia0;
+		str_calc_para * p_calc_para0 = (str_calc_para*)malloc(sizeof(str_calc_para));
+		if (NULL == p_calc_para0)
+		{
+			printf("In NN_model_init-%d, str_calc_para Not Enough memory, need debug\n",idx);
+			nn_model_free();
+			return;
+		}
+		p_calc_para_buf[idx] = p_calc_para0;
+		p_calc_para0->Ix = 1;
+		p_calc_para0->Iy = 1;
+		p_calc_para0->Ci = size0[idx-1];
+		p_calc_para0->Ox = 1;
+		p_calc_para0->Oy = 1;
+		p_calc_para0->Co = size0[idx];
+		p_calc_para0->size_out = p_calc_para0->Ox *p_calc_para0->Oy * p_calc_para0->Co;
+		p_calc_para0->Kx = 1;
+		p_calc_para0->Ky = 1;
+		p_calc_para0->stride_x = 1;
+		p_calc_para0->stride_y = 1;
+		p_calc_para0->bias_en = bias_en0;  // this MNIST, bias set to zeros, disable
+		p_nn_layer[idx]->threshold = 1;
+
+		if (size_out_max < p_calc_para0->size_out)
+			size_out_max = p_calc_para0->size_out;
+		
+	}
+	size_out_max_c = size_out_max;
+	if (0 != NN_buffer_init())
+		return;
+
+	p_calc_para_buf[1]->p_weight = &mnist_fcn_wei0_0[0][0];
+	p_calc_para_buf[2]->p_weight = &mnist_fcn_wei0_1[0][0];
+	p_calc_para_buf[3]->p_weight = &mnist_fcn_wei0_2[0][0];
+	p_calc_para_buf[1]->p_bias = &mnist_fcn_bia0_0[0];
+	p_calc_para_buf[2]->p_bias = &mnist_fcn_bia0_1[0];
+	p_calc_para_buf[3]->p_bias = &mnist_fcn_bia0_2[0];
+	for(idx=1; idx<n_layer_tot; idx++)
+	{
+		p_nn_layer[idx]->NN_layer_init_id(idx);
+		p_nn_layer[idx]->NN_layer_init_type(LAYER_FCN);
+		p_nn_layer[idx]->NN_layer_init_calc_para(p_calc_para_buf[idx]);
+	//	FREE_POINT(p_nn_layer[idx])
+	};
+
+	nn_init_flag = 1;
+
+	// check layers, for debug
+	printf("\nLayer 0 status, id=%d,type=%d,init_flg=%d\n",p_nn_layer[0]->layer_id,\
+		p_nn_layer[0]->layer_type,p_nn_layer[0]->mem_ini_flag);
+	for(idx=1; idx<n_layer_tot; idx++)
+	{
+		printf("Layer %d status, id=%d,type=%d,init_flg=%d,size=%ld\n",idx,p_nn_layer[idx]->layer_id,\
+			p_nn_layer[idx]->layer_type,p_nn_layer[idx]->mem_ini_flag,p_nn_layer[idx]->p_calc_para->size_out);
+
+
+	}
+}
+
+int func_mnist_wei_init(char *fn, float *p_wei_out, float *p_bia_out,int ci, int co, int bias_en)
+{
+	int idx;
+	float tmp0;
+	FILE *fp_wei;
+	if (NULL == (fp_wei=fopen(fn,"r")))
+	{
+		printf("Error In func_mnist_wei_init, File:%s could not open, need debug\n",fn);
+		return 1;
+	}
+	else
+	{
+		float * p_wei;
+		for(idx=0; idx<co; idx++)
+		{
+			p_wei = p_wei_out;
+			fscanf(fp_wei,"%f",&tmp0);
+			fscanf(fp_wei,"%f",&tmp0);
+			for(int cidx=0; cidx < ci; cidx++)
+			{
+				fscanf(fp_wei,"%f",p_wei);
+				
+				if ((idx < 2) && (cidx < 3)) // for debug
+				{
+					printf("[co,ci,value]=[%d,%d,%f]\n",idx,cidx,*p_wei);
+				}
+				p_wei++;
+			}
+			p_wei_out += ci;
+		}
+	}
+	if (bias_en != 0)
+	{
+		// process bias
+	}
+	
+	fclose(fp_wei);
+	return 0;
 }
 
 

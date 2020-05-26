@@ -4,13 +4,11 @@
 #include "common.h"
 #include "../nn_model/nn_model.h"
 
-#define SPIKE_MODE_SEL				0 //0:fix, 1:random
-
 
 // Generator spike sequences, input:in_data, size:n_in, output:spike_buf,size:n_tot*n_in
-void Spike_input_generator(char *spike_buf, int t_sim, void *in_data, uLint_t n_in, int mod_se);
+void Spike_input_generator(char *spike_buf, int t_sim, void *in_data, uLint_t n_in, int mod_se,NN_model_c *p_nn);
 
-void Spike_input_gen_one(char *spike_out, int tidx, int t_sim, void *in_data, uLint_t n_in, int mod_se);
+void Spike_input_gen_one(char *spike_out, int tidx, int t_sim, void *in_data, uLint_t n_in, int mod_se,NN_model_c *p_nn);
 
 // Neuron_NN_pro, suing nn_model process function, results in res_data
 void Neuron_NN_pro(int tidx, void *inX, NN_model_c *p_nn, void*res_data);

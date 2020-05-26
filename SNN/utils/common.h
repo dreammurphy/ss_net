@@ -7,12 +7,15 @@
 
 // #define NULL						(0) //defined in stdio.h
 
+#define SPIKE_MODE_SEL					2 //0:fix, 1:random 2, ahead
+#define CASE_TEST						1 // 0:XOR, 1:MNIST,FCN 2:MNIST CNN
+
 #define TEST_MAP_MAX_SIZE       (1<<24)// 16M
 #define TEST_LABEL_OUT_MAX_SIZE    (10)
 #define LAYER_MAX_NUMBER			(128) // not using malloc function
 
 
-#define SIMU_TIME_LEN				(20)
+#define SIMU_TIME_LEN				(50)
 
 typedef enum
 {
@@ -48,7 +51,8 @@ typedef struct str_data_para
 typedef struct str_judge_data
 {
     public:
-    float *judge_data;
+//    float *judge_data;
+	int judge_data;
     uLint_t err_num=0;
     uLint_t n_tot=0;
     float err_rate;

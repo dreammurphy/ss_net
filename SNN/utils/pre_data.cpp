@@ -3,11 +3,31 @@
 void func_pre_data_init(str_data_para *p_pre_data)
 {
 	// for XOR
-	p_pre_data->nf = 1;
+	//func_pre_data_XOR_init(p_pre_data);
+
+	
+	func_pre_data_MNIST_init(p_pre_data);
+
+}
+
+void func_pre_data_XOR_init(str_data_para *p_pre_data)
+{
+	// for XOR
+	p_pre_data->nf = 2;
 	p_pre_data->nx = 1;
-	p_pre_data->ny = 2;  
+	p_pre_data->ny = 1;  
 	p_pre_data->outf  = 1;
 	p_pre_data->n_tot = 4; 
+}
+
+void func_pre_data_MNIST_init(str_data_para *p_pre_data)
+{
+	// for XOR
+	p_pre_data->nf = 28*28;
+	p_pre_data->nx = 1;
+	p_pre_data->ny = 1;  
+	p_pre_data->outf  = 10;
+	p_pre_data->n_tot = 4; //10000; 
 }
 
 
@@ -19,10 +39,10 @@ Simu_para_c::Simu_para_c()
 
 Simu_para_c::~Simu_para_c()
 {
-
+	fclose(fp_data);
 }
 
-void Simu_para_c::Simu_para_init(str_data_para *p_data_para)
+int Simu_para_c::Simu_para_init(str_data_para *p_data_para)
 {
 	t_idx   = 0;
 	t_simu = SIMU_TIME_LEN;
@@ -30,6 +50,16 @@ void Simu_para_c::Simu_para_init(str_data_para *p_data_para)
 	p_in_data_para = p_data_para;
 	in_size = p_in_data_para->nx * p_in_data_para->ny * p_in_data_para->nf;
 	n_tot = p_data_para->n_tot;
+
+	char data_fi_name[] = "./data/mnist_unit8_tx.txt";
+	fp_data = fopen(data_fi_name,"r");
+	if(NULL == fp_data)
+	{
+		printf("Error in Simu_para_init, file %s could not open\n",data_fi_name);
+		return 1;
+	}
+
+	return 0;
 }
 
 // for XOR
@@ -47,6 +77,14 @@ void Simu_para_c::Get_test_data(int idx, str_data_para *p_param, void *out_x, vo
 	in_x[0] = xor_buf_in[idx][0];
 	in_x[1] = xor_buf_in[idx][1];
 	ou_y[0] = xor_ou[idx];
+
+#if (1 == CASE_TEST)
+	fscanf(fp_data,"%d", &ou_y[0]);
+	for(uLint_t idx=0; idx<in_size; idx++)
+	{
+		fscanf(fp_data,"%f", &in_x[idx]);
+	}
+#endif
 
 }
 

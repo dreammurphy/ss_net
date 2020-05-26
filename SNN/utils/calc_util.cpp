@@ -1,5 +1,185 @@
 #include "calc_util.h"
 #include "stdio.h"
+#include "stdlib.h"
+
+rand_cla::rand_cla()
+{
+	int idx;
+	rand_len = 16;
+	for(idx=1; idx<rand_len; idx++)
+	{
+		rand_mem[idx] = 0;
+	}
+	rand_mem[0] = 1;
+
+	out_len = 1;
+	out_pos[0] = 1;
+	
+	pos_cur = 0;
+	xor_bit = rand_mem[(0+pos_cur)];
+}
+
+rand_cla::~rand_cla()
+{
+
+}
+
+void rand_cla::rand_sta_set(char *mem_16bit)
+{
+	int idx;
+	for(idx=0; idx<rand_len; idx++)
+	{
+		rand_mem[idx] = mem_16bit[idx];
+	}
+	pos_cur = 0;
+}
+
+void rand_cla::rand_config_pos(char out_len0, int *out_pos0)
+{
+	int idx;
+	for(idx=0; idx<out_len0; idx++)
+	{
+		out_pos[idx] = out_pos0[idx];
+	}
+	out_len = out_len0;
+	pos_cur = 0;
+} 
+
+void rand_cla::rand_pro(char *out_buf)
+{
+	char bit16,bit14,bit13,bit11;
+	int idx;
+	xor_bit = rand_mem[pos_cur];
+	bit11 = rand_mem[(pos_cur+11)&0x0f] ^ xor_bit;
+	bit13 = rand_mem[(pos_cur+13)&0x0f] ^ xor_bit;
+	bit14 = rand_mem[(pos_cur+14)&0x0f] ^ xor_bit;
+	bit16 = xor_bit;
+	for(idx=0; idx<out_len; idx++)
+	{
+		out_buf[idx] = rand_mem[(pos_cur + out_pos[idx])&0x0f];
+	}
+	
+	rand_mem[(pos_cur+11)&0x0f] = bit11;
+	rand_mem[(pos_cur+13)&0x0f] = bit13;
+	rand_mem[(pos_cur+14)&0x0f] = bit14;
+	rand_mem[(pos_cur+16)&0x0f] = bit16;
+	
+	pos_cur++;
+	//if(pos_cur >= rand_len) // rand_len = 16
+	//	pos_cur -= rand_len;
+	pos_cur = pos_cur & 0x0f;
+	
+}
+
+void test_rand(void)
+{
+	rand_cla rand_1;
+	char out_len = 3;
+	int out_pos[3] = {0,2,5};
+	char rand_out[3];
+	char mem_init[16] = {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	rand_1.rand_config_pos(out_len,out_pos);
+	rand_1.rand_sta_set(mem_init);
+
+	int idx;
+	for(idx=0; idx<16; idx++)
+	{
+		rand_1.rand_pro(rand_out);
+		// output, print
+		printf("%d,output:%d,%d,%d\n",idx,rand_out[out_pos[0]],rand_out[out_pos[1]],rand_out[out_pos[2]]);
+	}
+	printf("rand test end\n");
+
+}
+
+Spike_generator::Spike_generator()
+{
+
+}
+
+Spike_generator::~Spike_generator()
+{
+
+}
+
+int Spike_generator::spike_gen_init(void)
+{
+	FILE *fp;
+	char file_str[] = "./data/spike_seq_50_256.txt";
+	int va;
+	fp = fopen(file_str,"r");
+	if(NULL == fp)
+	{
+		printf("File %s Could not Open, need debug\n",file_str);
+		return 1; // Error
+	}
+	
+	spike_in_width = 8;
+	lut_len = 50;
+	
+	for(int idx=0; idx<lut_len; idx++)
+	{
+		for(int sidx=0; sidx<256; sidx++)
+		{
+			fscanf(fp,"%d",&va);
+			spike_seq_50_256[idx][sidx] = va;
+		}
+	}
+	fclose(fp);
+	return 0;
+}
+
+
+void Spike_generator::spike_gen_one(int *in_va_buf,char *out_spike_buf,int tidx, uLint_t spike_len0)
+{
+	uLint_t idx;
+	char *p_in;
+	p_in = spike_seq_50_256[tidx];
+	for(idx =0; idx<spike_len0; idx++)
+	{
+		out_spike_buf[idx] = p_in[in_va_buf[idx]];
+	}
+}
+
+void Spike_generator::spike_gen_one(float *in_va_buf,char *out_spike_buf,int tidx, uLint_t spike_len0)
+{
+	uLint_t idx;
+	char *p_in;
+	int in_idx;
+	p_in = spike_seq_50_256[tidx];
+	for(idx =0; idx<spike_len0; idx++)
+	{
+		in_idx = int(in_va_buf[idx]*256);
+		if(in_idx>255)
+			in_idx = 255;
+
+		out_spike_buf[idx] = p_in[in_idx];
+	}
+}
+
+void test_spike_gen(void)
+{
+	Spike_generator test_spike_gen;
+	int slen = 8;
+	int in_va_buf[8] = {10,20,40,60,80,120,160,230};
+	char ou_spike_buf[8];
+	if (0 != test_spike_gen.spike_gen_init())
+	{
+		printf("Error in test_spike_gen, need debug!!! \n");
+		return;
+	}
+	for(int idx=0; idx<10; idx++)
+	{
+		printf("Spike-Generator, time=%d,[in*256,out] ",idx);
+		test_spike_gen.spike_gen_one(in_va_buf,ou_spike_buf,idx, slen);
+		for(int sidx=0; sidx<slen; sidx++)
+		{
+			printf(",[%d,%d]",in_va_buf[sidx],ou_spike_buf[sidx]);
+		}
+		printf("\n");
+	}
+
+}
 
 void func_fcn_process(void)
 {
@@ -39,6 +219,7 @@ void func_conv2d_spike_pro(char *inX, float *ouX, float *p_wei,int Iy, int Kx, i
 
 }
 
+int g_deb_print = 0;
 void func_fcn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 {
 	int coidx, cidx;
@@ -67,6 +248,34 @@ void func_fcn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 			}
 		}
 	}
+	
+	// for debug
+	if (g_deb_print < 3)
+	{
+	p_wei = p_calc_para->p_weight;
+	
+	printf("DEBUG DATA, input:\n");
+	for(cidx=0; cidx< p_calc_para->Ci; cidx++)
+	{
+		p_ko = p_wei;
+		p_wei++;
+
+			for(coidx=0; coidx<p_calc_para->Co; coidx++)
+			{
+				printf("Ci,Co,inX,wei:[%d,%d,%d,%f]\n",cidx,coidx,inX[cidx],p_ko[0]);
+				p_ko += p_calc_para->Ci; // Next Ker point
+			}
+	}
+	
+	printf("DEBUG DATA, output:\n");
+			for(coidx=0; coidx<p_calc_para->Co; coidx++)
+			{
+				printf("%d:%f\n",coidx,ouX[coidx]);
+			}
+			g_deb_print++;
+			}
+	// End debug
+	
 	if(p_calc_para->bias_en != 0)
 	{	
 		p_bias = p_calc_para->p_bias;
@@ -142,6 +351,27 @@ void func_concat_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 void func_eltwise_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 {
 
+}
+
+
+void func_find_max(float *in, uLint_t n, uLint_t *midx, float* max_va)
+{
+	uLint_t idx;
+	uint_t max_idx;
+	float va0;
+	va0 = in[0];
+	max_idx = 0;
+	for(idx=1; idx<n; idx++)
+	{
+		if (va0 < in[idx])
+		{
+			va0 = in[idx];
+			max_idx = idx;
+		}
+	}
+	*midx = max_idx;
+	*max_va = va0;
+	
 }
 
 
