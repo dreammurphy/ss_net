@@ -220,6 +220,9 @@ void func_conv2d_spike_pro(char *inX, float *ouX, float *p_wei,int Iy, int Kx, i
 }
 
 int g_deb_print = 0;
+#define DEB_PRINT_NUM	(0)
+
+FILE * fp_deb_spike_fcn;
 void func_fcn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 {
 	int coidx, cidx;
@@ -234,6 +237,87 @@ void func_fcn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 	}
 
 	p_wei = p_calc_para->p_weight;
+
+#if (DEB_PRINT_NUM > 0)
+	// for debug more
+	float *p_tmp_o;
+	p_tmp_o = (float *)malloc(p_calc_para->Co*sizeof(float));
+	if (NULL == p_tmp_o)
+	{
+		printf("Error in func_fcn_spike_pro, memory is not enough, debug\n");
+		exit(1);
+		return;
+	}
+	for(coidx=0;coidx<p_calc_para->Co; coidx++)
+	{
+		p_tmp_o[coidx] = 0;
+	}
+	for(cidx=0; cidx< p_calc_para->Ci; cidx++)
+	{
+		p_ko = p_wei;
+		p_wei++;
+		
+		if (inX[cidx]!= 0)
+		{
+			for(coidx=0; coidx<p_calc_para->Co; coidx++)
+			{
+				p_tmp_o[coidx] += p_ko[0];
+				p_ko += p_calc_para->Ci; // Next Ker point
+			}
+		}
+	}
+	
+	if(p_calc_para->bias_en != 0)
+	{	
+		p_bias = p_calc_para->p_bias;
+		for(coidx=0; coidx<p_calc_para->Co; coidx++)
+		{
+			p_tmp_o[coidx]+= p_bias[coidx];
+		}
+	}
+	for(coidx=0;coidx<p_calc_para->Co; coidx++)
+	{
+		ouX[coidx] +=p_tmp_o[coidx];
+	}
+	
+
+	// for debug
+	if (g_deb_print < DEB_PRINT_NUM)
+	{
+		p_wei = p_calc_para->p_weight;
+		
+		printf("DEBUG DATA, input,[Ci,Co,inX,wei]:\n");
+		for(cidx=0; cidx< p_calc_para->Ci; cidx++)
+		{
+			p_ko = p_wei;
+			p_wei++;
+
+				for(coidx=0; coidx<p_calc_para->Co; coidx++)
+				{
+					printf("%d, %d, %d, %f\n",cidx,coidx,inX[cidx],p_ko[0]);
+					fprintf(fp_deb_spike_fcn,"%d, %d, %d, %f\n",cidx,coidx,inX[cidx],p_ko[0]);
+					p_ko += p_calc_para->Ci; // Next Ker point
+				}
+		}
+		
+		printf("DEBUG DATA, output:\n");
+			for(coidx=0; coidx<p_calc_para->Co; coidx++)
+			{
+				printf("%d, %f, %f\n",coidx,ouX[coidx],p_tmp_o[coidx]);
+				fprintf(fp_deb_spike_fcn,"-1, %d, %f, %f\n",coidx,ouX[coidx],p_tmp_o[coidx]);
+			}
+			g_deb_print++;
+			
+			if(g_deb_print == DEB_PRINT_NUM)
+				fclose(fp_deb_spike_fcn);
+	}
+
+	FREE_POINT(p_tmp_o);
+
+	// End debug	
+
+#else
+
 	for(cidx=0; cidx< p_calc_para->Ci; cidx++)
 	{
 		p_ko = p_wei;
@@ -249,33 +333,6 @@ void func_fcn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 		}
 	}
 	
-	// for debug
-	if (g_deb_print < 3)
-	{
-	p_wei = p_calc_para->p_weight;
-	
-	printf("DEBUG DATA, input:\n");
-	for(cidx=0; cidx< p_calc_para->Ci; cidx++)
-	{
-		p_ko = p_wei;
-		p_wei++;
-
-			for(coidx=0; coidx<p_calc_para->Co; coidx++)
-			{
-				printf("Ci,Co,inX,wei:[%d,%d,%d,%f]\n",cidx,coidx,inX[cidx],p_ko[0]);
-				p_ko += p_calc_para->Ci; // Next Ker point
-			}
-	}
-	
-	printf("DEBUG DATA, output:\n");
-			for(coidx=0; coidx<p_calc_para->Co; coidx++)
-			{
-				printf("%d:%f\n",coidx,ouX[coidx]);
-			}
-			g_deb_print++;
-			}
-	// End debug
-	
 	if(p_calc_para->bias_en != 0)
 	{	
 		p_bias = p_calc_para->p_bias;
@@ -284,6 +341,8 @@ void func_fcn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 			ouX[coidx]+= p_bias[coidx];
 		}
 	}
+#endif
+
 }
 
 void func_cnn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)

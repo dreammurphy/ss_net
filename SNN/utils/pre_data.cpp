@@ -27,7 +27,7 @@ void func_pre_data_MNIST_init(str_data_para *p_pre_data)
 	p_pre_data->nx = 1;
 	p_pre_data->ny = 1;  
 	p_pre_data->outf  = 10;
-	p_pre_data->n_tot = 4; //10000; 
+	p_pre_data->n_tot = 10000; //10000; 
 }
 
 
@@ -80,9 +80,14 @@ void Simu_para_c::Get_test_data(int idx, str_data_para *p_param, void *out_x, vo
 
 #if (1 == CASE_TEST)
 	fscanf(fp_data,"%d", &ou_y[0]);
+	float amp_div;
+	amp_div = 1.0/255;
+	int tmp_i;
 	for(uLint_t idx=0; idx<in_size; idx++)
 	{
-		fscanf(fp_data,"%f", &in_x[idx]);
+		fscanf(fp_data,"%d", &tmp_i);
+		in_x[idx] = tmp_i * amp_div ;
+	//	printf("idx,in,float: %ld, %d, %f\n",idx,tmp_i,in_x[idx]); // for debug
 	}
 #endif
 

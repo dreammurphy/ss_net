@@ -467,11 +467,14 @@ int func_mnist_wei_init(char *fn, float *p_wei_out, float *p_bia_out,int ci, int
 			for(int cidx=0; cidx < ci; cidx++)
 			{
 				fscanf(fp_wei,"%f",p_wei);
-				
+
+				#if 0
 				if ((idx < 2) && (cidx < 3)) // for debug
 				{
 					printf("[co,ci,value]=[%d,%d,%f]\n",idx,cidx,*p_wei);
 				}
+				#endif
+				
 				p_wei++;
 			}
 			p_wei_out += ci;

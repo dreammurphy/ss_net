@@ -31,11 +31,15 @@ void Spike_input_gen_one(char *spike_out, int tidx, int t_sim, void *in_data, uL
 		float tho;
 		for(idx=0; idx<n_in; idx++)
 		{
-			tho = n_in * inX[idx];
+			tho = t_sim * inX[idx];
 			if (tidx < tho)
 				spike_out[idx] = 1;
 			else
 				spike_out[idx] = 0;
+
+		#if (0 !=  CASE_DEBUG)
+			printf("Spike, idx, tidx, t_sim, out: %ld, %d, %d, %f, %d\n",idx,tidx,t_sim,tho,spike_out[idx]);
+		#endif
 		}
 	}
 }
@@ -120,19 +124,23 @@ void Neuron_sim_one(void *in_data, NN_model_c *p_nn, void *res_data, str_judge_d
 		
 		outY = (float *)res_data; // -- should be delete ?, only for compiler debug
 		Neuron_out_pro(tidx, t_sim, size_out, outX, outY, deb_info);
-		
-#if (0 == CASE_TEST)
-		printf("In Neuron_sim_one, tidx:%d,res:%f\n",tidx,outY[0]/(tidx+1));
-#elif (1 == CASE_TEST)
+
+#if (0 != CASE_DEBUG)
+		printf("In Neuron_sim_one:\n");
+	#if (0 == CASE_TEST)
+		printf("XOR, tidx:%d,res:%f\n",tidx,outY[0]/(tidx+1));
+	#elif (1 == CASE_TEST)
 		printf("tidx:%d,res:%.2f",tidx,outY[0]);
 		for(uLint_t sidx=1; sidx<size_out; sidx++)
 		{
 			printf(",%.2f",outY[sidx]);
 		}
 		printf("\n");
-#else
+	#else
 
+	#endif
 #endif
+
 	//	Neuron_get_res(tidx, outY, res_data);
 	}
 
@@ -143,7 +151,7 @@ void Neuron_sim_one(void *in_data, NN_model_c *p_nn, void *res_data, str_judge_d
 	func_find_max(outY, size_out, &jud_idx, &jud_va);
 	#endif
 	
-	p_res_judge->judge_data = jud_idx;
+	p_res_judge->judge_data = jud_idx+1; // for classes-index, start from 1
 
 	// other process
 	float amp_div;
@@ -179,19 +187,30 @@ void Judge_pro(uLint_t idx, void *outY, void *ouIdeal, str_judge_data *p_judgeRe
         p_judgeRes->err_num++;
     }
 	#endif
-    /* for XOR */
-    float *ou;
     int *ideal;
-    ou = (float *)outY;
     ideal = (int *)ouIdeal;
+	#if (0 == CASE_TEST) 
+    /* for XOR */
 //    if (((ou[0]>0.5) ^ ideal[0]) != 0)
+    float *ou;
+    ou = (float *)outY;
 	if (p_judgeRes->judge_data != ideal[0])
     {
     	//	for debug
-    	printf("out is %f, logic is %d, expected is %d\n",ou[0],(ou[0]>0.5),ideal[0]);
+    	printf("case:%ld, out is %f, logic is %d, expected is %d\n",idx,ou[0],(ou[0]>0.5),ideal[0]);
     	p_judgeRes->err_num++;
     }
-    
+    #elif (1 == CASE_TEST)
+	if (p_judgeRes->judge_data != (ideal[0]))
+    {
+    	//	for debug
+    	printf("case:%ld, judge is %d, expected is %d\n",idx,p_judgeRes->judge_data,ideal[0]);
+    	p_judgeRes->err_num++;
+    }    
+    #else
+
+
+    #endif
 }
 
 // Neuron_sim_process, using NN process, get the results

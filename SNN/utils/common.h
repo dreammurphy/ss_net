@@ -9,6 +9,7 @@
 
 #define SPIKE_MODE_SEL					2 //0:fix, 1:random 2, ahead
 #define CASE_TEST						1 // 0:XOR, 1:MNIST,FCN 2:MNIST CNN
+#define CASE_DEBUG						0 // 1:debug
 
 #define TEST_MAP_MAX_SIZE       (1<<24)// 16M
 #define TEST_LABEL_OUT_MAX_SIZE    (10)

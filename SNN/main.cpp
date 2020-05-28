@@ -26,7 +26,7 @@ Simu_para_c         g_simu_para;
 NN_model_c          g_nn_mod;
 Spike_generator 	g_spike_generator;
 
-
+extern FILE * fp_deb_spike_fcn;
 int main(void)
 {
     float *test_x, *inX;;
@@ -43,6 +43,8 @@ int main(void)
 
     NN_model_c *p_nn_mod;
 	Spike_generator *p_spike_gen;
+	
+	fp_deb_spike_fcn = fopen("deb_spike_fcn.txt","w");
 	
 	p_spike_gen = &g_spike_generator;
 	if(0 != p_spike_gen->spike_gen_init())
@@ -109,5 +111,7 @@ int main(void)
 
 #endif
 
+	fclose(fp_deb_spike_fcn);
+	
     return 0;
 }
