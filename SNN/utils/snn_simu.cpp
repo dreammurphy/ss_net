@@ -146,7 +146,7 @@ void Neuron_sim_one(void *in_data, NN_model_c *p_nn, void *res_data, str_judge_d
 
 	#if (0 == CASE_TEST)
 	jud_idx = ((2*outY[0])>=t_sim); // for XOR
-	#elif (1 == CASE_TEST)
+	#elif ((1 == CASE_TEST) || (2 == CASE_TEST))
 	float   jud_va;
 	func_find_max(outY, size_out, &jud_idx, &jud_va);
 	#endif
@@ -189,22 +189,27 @@ void Judge_pro(uLint_t idx, void *outY, void *ouIdeal, str_judge_data *p_judgeRe
 	#endif
     int *ideal;
     ideal = (int *)ouIdeal;
+    float *ou;
+    ou = (float *)outY;
 	#if (0 == CASE_TEST) 
     /* for XOR */
 //    if (((ou[0]>0.5) ^ ideal[0]) != 0)
-    float *ou;
-    ou = (float *)outY;
 	if (p_judgeRes->judge_data != ideal[0])
     {
     	//	for debug
     	printf("case:%ld, out is %f, logic is %d, expected is %d\n",idx,ou[0],(ou[0]>0.5),ideal[0]);
     	p_judgeRes->err_num++;
     }
-    #elif (1 == CASE_TEST)
+    #elif ((1 == CASE_TEST) || (2 == CASE_TEST))
 	if (p_judgeRes->judge_data != (ideal[0]))
     {
     	//	for debug
-    	printf("case:%ld, judge is %d, expected is %d\n",idx,p_judgeRes->judge_data,ideal[0]);
+    	printf("case:%ld, judge is %d, expected is %d,out:%.3f",idx,p_judgeRes->judge_data,ideal[0],ou[0]);
+    	for(int idx=1; idx<10; idx++)
+    	{
+			printf(",%.3f",ou[idx]);
+    	}
+    	printf("\n");
     	p_judgeRes->err_num++;
     }    
     #else

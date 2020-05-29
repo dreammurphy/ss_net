@@ -8,7 +8,7 @@
 // #define NULL						(0) //defined in stdio.h
 
 #define SPIKE_MODE_SEL					2 //0:fix, 1:random 2, ahead
-#define CASE_TEST						1 // 0:XOR, 1:MNIST,FCN 2:MNIST CNN
+#define CASE_TEST						2 // 0:XOR, 1:MNIST,FCN 2:MNIST CNN
 #define CASE_DEBUG						0 // 1:debug
 
 #define TEST_MAP_MAX_SIZE       (1<<24)// 16M
@@ -22,7 +22,8 @@ typedef enum
 {
     LAYER_FCN = 0,
     LAYER_CNN,
-    LAYER_POOLING,
+	LAYER_POOLING_AVE,
+    LAYER_POOLING_MAX,
     LAYER_DIVERSITY,
     LAYER_OTHERS
 

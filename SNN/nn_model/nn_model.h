@@ -41,10 +41,14 @@ void NN_out_pro_one(void *outX);
 
 void NN_model_init_xor(Simu_para_c *p_simu_para0);
 void NN_model_init_fcn(Simu_para_c *p_simu_para0);
+void NN_model_init_cnn(Simu_para_c *p_simu_para0);
+
 
 };
 
 int func_mnist_wei_init(char *fn, float *p_wei_out, float *p_bia_out,int ci, int co, int bias_en);
+int func_mnist_cnn_wei_init(char *fn, float *p_wei_out, float *p_bia_out,int ci, int co, int ko, int bias_en);
+
 
 
 

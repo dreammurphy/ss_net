@@ -42,7 +42,7 @@ class NN_layer_c
     void NN_layer_reset(void);
 
     void NN_layer_process(char * inX);
-	void NN_neuron_out_pro(float *in, char *out); // just do one neuron out. LIF model
+	void NN_neuron_out_pro(float *in, char *out, float thresh); // just do one neuron out. LIF model
 
 
 };

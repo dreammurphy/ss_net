@@ -171,8 +171,13 @@ void NN_layer_c::NN_layer_process(char * inX)
 			func_cnn_spike_pro(inX, p_mem, p_calc_para);
 			break;
 
-		case LAYER_POOLING:
+		case LAYER_POOLING_AVE:
 			func_pooling_ave_pro(inX, p_mem, p_calc_para);
+
+			break;
+
+		case LAYER_POOLING_MAX:
+			func_pooling_max_pro(inX, p_mem, p_calc_para);
 
 			break;
 
@@ -188,21 +193,38 @@ void NN_layer_c::NN_layer_process(char * inX)
 			printf("In NN_layer_process, layer_type not support! Debug!\n");
 			break;
 	}
-	for(idx=0; idx<size_tot; idx++)
+
+	if ((LAYER_FCN == layer_type) || (LAYER_CNN == layer_type))
 	{
-		NN_neuron_out_pro(&p_mem[idx],&p_spikes[idx]);
+		for(idx=0; idx<size_tot; idx++)
+		{
+			NN_neuron_out_pro(&p_mem[idx],&p_spikes[idx],threshold);
+		}
+	}
+	else if((LAYER_POOLING_AVE == layer_type) || (LAYER_POOLING_MAX == layer_type))
+	{
+		// only do judge, do not need update memory
+		for(idx=0; idx<size_tot; idx++)
+		{
+			p_spikes[idx] = (p_mem[idx]>=threshold);
+		}
+	}
+	else //others, not support now
+	{
+		printf("In NN_layer_process-2, layer_type not support! Debug!\n");
+
 	}
 }
 
 // just do one neuron out, LIF model
-void NN_layer_c::NN_neuron_out_pro(float *in, char *out)
+void NN_layer_c::NN_neuron_out_pro(float *in, char *out, float thresh)
 {
-	if (*in >= threshold)
+	if (*in >= thresh)
 	{
 		*out = 1;
 		if (0 == layer_lif_mod)
 		{
-			*in -= threshold;
+			*in -= thresh;
 		}
 		else
 		{

@@ -178,7 +178,7 @@ void test_spike_gen(void)
 		}
 		printf("\n");
 	}
-
+	printf("Spike-Generator test End\n");
 }
 
 void func_fcn_process(void)
@@ -220,9 +220,10 @@ void func_conv2d_spike_pro(char *inX, float *ouX, float *p_wei,int Iy, int Kx, i
 }
 
 int g_deb_print = 0;
-#define DEB_PRINT_NUM	(0)
+#define DEB_PRINT_NUM	(2)
 
 FILE * fp_deb_spike_fcn;
+FILE * fp_deb_spike_cnn;
 void func_fcn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 {
 	int coidx, cidx;
@@ -349,7 +350,7 @@ void func_cnn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 {
 // in:Y*X*Ci, Ou:Y*X*Co, weight:Ky*Kx*Ci*Co
 	int oyidx,oxidx,ocidx,icidx;
-	uLint_t map_size_o,map_size_i, map_ker;
+	uLint_t map_size_o,map_size_i, map_ker, map_ker_a;
 	float *p_co, *p_xo, *p_yo;
 	char *p_ci, *p_xi;  //, *p_yi;
 	float *p_ko, *p_ki, *p_kx; //, *p_ky;
@@ -359,15 +360,145 @@ void func_cnn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 	map_size_o = p_calc_para->Ox*p_calc_para->Oy;
 	map_size_i = p_calc_para->Ix*p_calc_para->Iy;
 	map_ker    = p_calc_para->Kx*p_calc_para->Ky;
+	map_ker_a  = map_ker*p_calc_para->Ci;
 	p_co = ouX;
 	p_ko  = p_calc_para->p_weight;
+
+	#if (DEB_PRINT_NUM > 0)
+		// for debug more
+		float *p_tmp_o;
+		p_tmp_o = (float *)malloc(p_calc_para->size_out*sizeof(float));
+		if (NULL == p_tmp_o)
+		{
+			printf("Error in func_cnn_spike_pro, memory is not enough, debug\n");
+			exit(1);
+			return;
+		}
+		
+		for(uLint_t i0 =0; i0 < p_calc_para->size_out; i0++)
+		{
+			p_tmp_o[i0]=0;
+		}
+		
+		p_co = p_tmp_o;
+		for(ocidx=0; ocidx < p_calc_para->Co; ocidx++)
+		{
+			p_xo = p_co; 
+			p_co += map_size_o;
+			p_ki = p_ko;
+			p_ko += map_ker_a;
+			for(oxidx=0; oxidx < p_calc_para->Ox; oxidx++)
+			{
+				p_yo = p_xo;
+				p_xo += p_calc_para->Oy;
+				for(oyidx=0; oyidx < p_calc_para->Oy; oyidx++)
+				{
+					// each kernel
+					tmp_sum0 = p_yo[oyidx];
+					p_ci = inX;
+					for(icidx = 0; icidx<p_calc_para->Ci; icidx++)
+					{
+						float sum0;
+						p_xi = p_ci;
+						p_ci += map_size_i;
+						p_kx = p_ki;
+						p_ki += map_ker;
+						func_conv2d_spike_pro(p_xi, &sum0, p_kx, p_calc_para->Iy, p_calc_para->Kx, p_calc_para->Ky);
+						
+						tmp_sum0 += sum0;
+					} // end icidx
+					p_yo[oyidx] = tmp_sum0;
+				} // end oyidx
+		
+			}// end oxidx
+		}// end ocidx
+		for(uLint_t i0=0;i0<p_calc_para->size_out; i0++)
+		{
+			ouX[i0] +=p_tmp_o[i0];
+		}
 	
+		// for debug
+		if (g_deb_print < DEB_PRINT_NUM)
+		{
+			int cidx,coidx,xidx,yidx;
+			int size_in0;
+			size_in0 = p_calc_para->Ix*p_calc_para->Iy;
+			printf("DEBUG DATA,CNN input,[Ci,xi,yi,in]:\n");
+			for(cidx=0; cidx<p_calc_para->Ci; cidx++)
+			{
+				for(xidx=0; xidx<p_calc_para->Ix;xidx++)
+				{
+					for(yidx=0; yidx<p_calc_para->Iy;yidx++)
+					{
+						if (cidx==0)
+						{
+							printf("-1, %d, %d, %d, %d\n",cidx,xidx,yidx,inX[cidx*size_in0+xidx*p_calc_para->Iy+yidx]);
+						}
+						fprintf(fp_deb_spike_cnn,"-1, %d, %d, %d, %d\n",cidx,xidx,yidx,inX[cidx*size_in0+xidx*p_calc_para->Iy+yidx]);
+					}
+				}
+			}
+			printf("DEBUG DATA,CNN weight,[Co,ci,kx,ky,wei]:\n");
+			p_ko = p_calc_para->p_weight;
+			for(coidx=0; coidx< p_calc_para->Co; coidx++)
+			{
+				p_ki = p_ko;
+				p_ko += map_ker_a;
+	
+				for(cidx=0; cidx<p_calc_para->Ci; cidx++)
+				{
+					p_kx = p_ki;
+					p_ki += map_ker;
+					for(xidx=0; xidx<p_calc_para->Kx;xidx++)
+					{
+						for(yidx=0; yidx<p_calc_para->Ky;yidx++)
+						{
+							if ((coidx==1) && (0 == cidx))
+							{
+								printf("%d, %d, %d, %d, %f\n",coidx,cidx,xidx,yidx,p_ki[xidx*p_calc_para->Iy+yidx]);
+							}
+							
+							fprintf(fp_deb_spike_cnn,"%d, %d, %d, %d, %f\n",coidx,cidx,xidx,yidx,p_ki[xidx*p_calc_para->Iy+yidx]);
+						}
+					}
+				}
+
+			}
+			
+			printf("DEBUG DATA, CNN output:\n");
+			size_in0 = p_calc_para->Ox*p_calc_para->Oy;
+			for(cidx=0; cidx<p_calc_para->Co; cidx++)
+			{
+				for(xidx=0; xidx<p_calc_para->Ox;xidx++)
+				{
+					for(yidx=0; yidx<p_calc_para->Oy;yidx++)
+					{
+						if (cidx==0)
+						{
+							printf("-2, %d, %d, %d, %f\n",cidx,xidx,yidx,p_tmp_o[cidx*size_in0+xidx*p_calc_para->Oy+yidx]);
+						}
+						fprintf(fp_deb_spike_cnn,"-2, %d, %d, %d, %f\n",cidx,xidx,yidx,p_tmp_o[cidx*size_in0+xidx*p_calc_para->Oy+yidx]);
+					}
+				}
+			}
+
+				g_deb_print++;
+				
+				if(g_deb_print == DEB_PRINT_NUM)
+					fclose(fp_deb_spike_cnn);
+		}
+	
+		FREE_POINT(p_tmp_o);
+	
+		// End debug	
+
+	#else	
 	for(ocidx=0; ocidx < p_calc_para->Co; ocidx++)
 	{
 		p_xo = p_co; 
 		p_co += map_size_o;
 		p_ki = p_ko;
-		p_ko += map_ker;
+		p_ko += map_ker_a;
 		for(oxidx=0; oxidx < p_calc_para->Ox; oxidx++)
 		{
 			p_yo = p_xo;
@@ -393,12 +524,65 @@ void func_cnn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 
 		}// end oxidx
 	}// end ocidx
+	#endif
 }
 
 void func_pooling_ave_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 {
+// in:Y*X*Ci, Ou:Y*X*Co, weight:Ky*Kx*Ci*Co
+	int oyidx,oxidx,ocidx,ixidx,iyidx;
+	uLint_t map_size_o,map_size_i;
+	float *p_co, *p_xo, *p_yo;
+	char *p_ci, *p_xi, *p_yi;
+	char *p_cur;
+//	float *p_ko, *p_ki, *p_kx; //, *p_ky;
 
+	float tmp_sum0;
+
+	map_size_o = p_calc_para->Ox*p_calc_para->Oy;
+	map_size_i = p_calc_para->Ix*p_calc_para->Iy;
+	p_co = ouX;
+	p_ci = inX;
+//	p_ko  = p_calc_para->p_weight;
+
+	// for pooling -average
+	for(ocidx=0; ocidx < p_calc_para->Co; ocidx++) // each co,ox,oy, do sum-average
+	{
+		p_xo = p_co; 
+		p_co += map_size_o;
+		p_xi = p_ci;
+		p_ci += map_size_i;
+//		p_ki = p_ko;
+//		p_ko += map_ker;
+		for(oxidx=0; oxidx < p_calc_para->Ox; oxidx++)
+		{
+			p_yo = p_xo;
+			p_xo += p_calc_para->Oy;
+			p_yi = p_xi;
+			p_xi += p_calc_para->Iy * p_calc_para->stride_x;
+			for(oyidx=0; oyidx < p_calc_para->Oy; oyidx++)
+			{
+				// each kernel
+				tmp_sum0 = 0; // then, add inx[ix,iy], range:kx,ky, and next point, str_x,str_y
+				p_cur = p_yi;
+				p_yi += p_calc_para->stride_y;
+				for(ixidx = 0; ixidx<p_calc_para->Kx; ixidx++)
+				{
+					for(iyidx = 0; iyidx<p_calc_para->Ky; iyidx++)
+					{				
+						tmp_sum0 += p_cur[iyidx];
+					}
+					p_cur += p_calc_para->Iy;
+				} // end ixidx
+				
+				p_yo[oyidx] = tmp_sum0;
+			} // end oyidx
+
+		}// end oxidx
+	}// end ocidx
 }
+
+
 void func_pooling_max_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 {
 

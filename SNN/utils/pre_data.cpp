@@ -2,12 +2,15 @@
 
 void func_pre_data_init(str_data_para *p_pre_data)
 {
+	printf("func_pre_data_init, start ...\n");
+
 	// for XOR
 	//func_pre_data_XOR_init(p_pre_data);
 
 	
 	func_pre_data_MNIST_init(p_pre_data);
-
+	
+	printf("func_pre_data_init, End \n");
 }
 
 void func_pre_data_XOR_init(str_data_para *p_pre_data)
@@ -27,7 +30,7 @@ void func_pre_data_MNIST_init(str_data_para *p_pre_data)
 	p_pre_data->nx = 1;
 	p_pre_data->ny = 1;  
 	p_pre_data->outf  = 10;
-	p_pre_data->n_tot = 10000; //10000; 
+	p_pre_data->n_tot = 4; //10000; 
 }
 
 
@@ -46,6 +49,8 @@ int Simu_para_c::Simu_para_init(str_data_para *p_data_para)
 {
 	t_idx   = 0;
 	t_simu = SIMU_TIME_LEN;
+	
+	printf("Simu_para_init, start ...\n");
 
 	p_in_data_para = p_data_para;
 	in_size = p_in_data_para->nx * p_in_data_para->ny * p_in_data_para->nf;
@@ -58,6 +63,8 @@ int Simu_para_c::Simu_para_init(str_data_para *p_data_para)
 		printf("Error in Simu_para_init, file %s could not open\n",data_fi_name);
 		return 1;
 	}
+	
+	printf("Simu_para_init, End ...\n");
 
 	return 0;
 }
@@ -78,7 +85,7 @@ void Simu_para_c::Get_test_data(int idx, str_data_para *p_param, void *out_x, vo
 	in_x[1] = xor_buf_in[idx][1];
 	ou_y[0] = xor_ou[idx];
 
-#if (1 == CASE_TEST)
+#if ((1 == CASE_TEST) || (2 == CASE_TEST))
 	fscanf(fp_data,"%d", &ou_y[0]);
 	float amp_div;
 	amp_div = 1.0/255;
