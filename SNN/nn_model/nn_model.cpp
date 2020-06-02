@@ -482,7 +482,7 @@ void NN_model_c::NN_model_init_cnn(Simu_para_c *p_simu_para0)
 	int ci_v0[4] = {1,16,16,10};
 	int co_v0[4] = {16,16,10,1};
 	int str_v0[6]= {1,1,2,1,2,1};
-	LayerType lay_type_v[6] = {LAYER_CNN, LAYER_POOLING_AVE, LAYER_CNN, LAYER_POOLING_AVE, LAYER_CNN};
+	LayerType lay_type_v[6] = {LAYER_CNN, LAYER_POOLING_AVE, LAYER_CNN, LAYER_POOLING_AVE, LAYER_FCN};
 	char fn_str_0[] = "./data/conv1.weight.txt";
 	char fn_str_1[] = "./data/conv2.weight.txt";
 	char fn_str_2[] = "./data/fc1.weight.txt";
@@ -516,7 +516,8 @@ void NN_model_c::NN_model_init_cnn(Simu_para_c *p_simu_para0)
 		return;
 	}
 	printf("NN_model_init_cnn - 04, start ...\n");
-	if (0!= func_mnist_cnn_wei_init(fn_str_2,mnist_cnn_wei0_2[0],mnist_cnn_bia0_2,ci_v0[2],co_v0[2],ker_0[2]*ker_0[2],0))
+//	if (0!= func_mnist_cnn_wei_init(fn_str_2,mnist_cnn_wei0_2[0],mnist_cnn_bia0_2,ci_v0[2],co_v0[2],ker_0[2]*ker_0[2],0))
+	if (0!= func_mnist_wei_init(fn_str_2,mnist_cnn_wei0_2[0],mnist_cnn_bia0_2,ci_v0[2]*size0[2]*size0[2],co_v0[2],0))
 	{
 		printf("Error In NN_model_init_cnn-3, File could not open, need debug\n");
 		nn_model_free();
@@ -611,8 +612,8 @@ void NN_model_c::NN_model_init_cnn(Simu_para_c *p_simu_para0)
 			p_calc_para0->Iy = 1;
 			p_calc_para0->Ci = p_calc_para_buf[idx-1]->size_out;
 			p_calc_para0->Co = co_v0[lay_ccn_idx];
-			p_calc_para0->Kx = ker_0[lay_ccn_idx];
-			p_calc_para0->Ky = ker_0[lay_ccn_idx];
+			p_calc_para0->Kx = ker_0[lay_ccn_idx]; // should be 1
+			p_calc_para0->Ky = ker_0[lay_ccn_idx]; // should be 1
 			p_calc_para0->stride_x = 1; // str_v0[idx];
 			p_calc_para0->stride_y = 1; // str_v0[idx];
 			p_calc_para0->Ox = 1; // ker_x:5
@@ -627,8 +628,8 @@ void NN_model_c::NN_model_init_cnn(Simu_para_c *p_simu_para0)
 		{
 			p_calc_para0->Ix = p_calc_para_buf[idx-1]->Ox;
 			p_calc_para0->Iy = p_calc_para_buf[idx-1]->Oy;
-			p_calc_para0->Ci = p_calc_para_buf[idx-1]->Ox;
-			p_calc_para0->Co = p_calc_para_buf[idx-1]->Ox;
+			p_calc_para0->Ci = p_calc_para_buf[idx-1]->Co;
+			p_calc_para0->Co = p_calc_para_buf[idx-1]->Co;
 			p_calc_para0->stride_x = str_v0[idx];
 			p_calc_para0->stride_y = str_v0[idx];
 

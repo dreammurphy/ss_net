@@ -26,7 +26,7 @@ Simu_para_c         g_simu_para;
 NN_model_c          g_nn_mod;
 Spike_generator 	g_spike_generator;
 
-extern FILE * fp_deb_spike_fcn;
+//extern FILE * fp_deb_spike_fcn;
 extern FILE * fp_deb_spike_cnn;
 int main(void)
 {
@@ -46,7 +46,8 @@ int main(void)
 	Spike_generator *p_spike_gen;
 
 	#if (1 == CASE_TEST)
-	fp_deb_spike_fcn = fopen("deb_spike_fcn.txt","w");
+//	fp_deb_spike_fcn = fopen("deb_spike_fcn.txt","w");
+	fp_deb_spike_cnn = fopen("deb_spike_fcn.txt","w");
 	#elif (2 == CASE_TEST)
 	fp_deb_spike_cnn = fopen("deb_spike_cnn.txt","w");
 	#endif
@@ -117,9 +118,9 @@ int main(void)
 
 #endif
 
-#if (1 == CASE_TEST)
-	fclose(fp_deb_spike_fcn);
-#elif (2 == CASE_TEST)
+#if ((1 == CASE_TEST) || (2 == CASE_TEST))
+//	fclose(fp_deb_spike_fcn);
+//#elif (2 == CASE_TEST)
 	fclose(fp_deb_spike_cnn);
 #endif	
     return 0;

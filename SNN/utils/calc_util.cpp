@@ -208,6 +208,7 @@ void func_conv2d_spike_pro(char *inX, float *ouX, float *p_wei,int Iy, int Kx, i
 		p_kx += Ky;
 		p_iy = p_ix;
 		p_ix += Iy;
+
 		for(kyidx=0; kyidx < Ky; kyidx++)
 		{
 //			tmp_sum0 += p_iy[kyidx]*p_ky[kyidx];
@@ -220,9 +221,9 @@ void func_conv2d_spike_pro(char *inX, float *ouX, float *p_wei,int Iy, int Kx, i
 }
 
 int g_deb_print = 0;
-#define DEB_PRINT_NUM	(2)
+#define DEB_PRINT_NUM	(30)
 
-FILE * fp_deb_spike_fcn;
+//FILE * fp_deb_spike_fcn;
 FILE * fp_deb_spike_cnn;
 void func_fcn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 {
@@ -286,7 +287,8 @@ void func_fcn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 	if (g_deb_print < DEB_PRINT_NUM)
 	{
 		p_wei = p_calc_para->p_weight;
-		
+
+		#if (1 == CASE_TEST)
 		printf("DEBUG DATA, input,[Ci,Co,inX,wei]:\n");
 		for(cidx=0; cidx< p_calc_para->Ci; cidx++)
 		{
@@ -296,7 +298,7 @@ void func_fcn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 				for(coidx=0; coidx<p_calc_para->Co; coidx++)
 				{
 					printf("%d, %d, %d, %f\n",cidx,coidx,inX[cidx],p_ko[0]);
-					fprintf(fp_deb_spike_fcn,"%d, %d, %d, %f\n",cidx,coidx,inX[cidx],p_ko[0]);
+					fprintf(fp_deb_spike_cnn,"%d, %d, %d, %f\n",cidx,coidx,inX[cidx],p_ko[0]);
 					p_ko += p_calc_para->Ci; // Next Ker point
 				}
 		}
@@ -305,12 +307,42 @@ void func_fcn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 			for(coidx=0; coidx<p_calc_para->Co; coidx++)
 			{
 				printf("%d, %f, %f\n",coidx,ouX[coidx],p_tmp_o[coidx]);
-				fprintf(fp_deb_spike_fcn,"-1, %d, %f, %f\n",coidx,ouX[coidx],p_tmp_o[coidx]);
+				fprintf(fp_deb_spike_cnn,"-1, %d, %f, %f\n",coidx,ouX[coidx],p_tmp_o[coidx]);
 			}
+		#elif (2 == CASE_TEST)
+		
+		for(cidx=0; cidx< p_calc_para->Ci; cidx++)
+		{
+			fprintf(fp_deb_spike_cnn,"-3, -1, %d, %d, %d\n",cidx,coidx,inX[cidx]);
+		}
+		
+		printf("DEBUG DATA, input,[-3,Ci,Co,inX,wei]:\n");
+
+//		for(cidx=0; cidx< p_calc_para->Ci; cidx++)
+		for(coidx=0; coidx<p_calc_para->Co; coidx++)
+		{
+			p_ko = p_wei;
+			p_wei+= p_calc_para->Ci;
+				for(cidx=0; cidx< p_calc_para->Ci; cidx++)
+				{
+					printf("-3, %d, %d, %d, %f\n",cidx,coidx,inX[cidx],p_ko[cidx]);
+					fprintf(fp_deb_spike_cnn,"-3, %d, %d, %d, %f\n",cidx,coidx,inX[cidx],p_ko[cidx]);
+				}
+		}
+		
+		printf("DEBUG DATA, output:\n");
+			for(coidx=0; coidx<p_calc_para->Co; coidx++)
+			{
+				printf("-3, -2, %d, %f, %f\n",coidx,ouX[coidx],p_tmp_o[coidx]);
+				fprintf(fp_deb_spike_cnn,"-3, -2, %d, %f, %f\n",coidx,ouX[coidx],p_tmp_o[coidx]);
+			}
+			#endif
+
+			
 			g_deb_print++;
 			
 			if(g_deb_print == DEB_PRINT_NUM)
-				fclose(fp_deb_spike_fcn);
+				fclose(fp_deb_spike_cnn);
 	}
 
 	FREE_POINT(p_tmp_o);
@@ -352,7 +384,7 @@ void func_cnn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 	int oyidx,oxidx,ocidx,icidx;
 	uLint_t map_size_o,map_size_i, map_ker, map_ker_a;
 	float *p_co, *p_xo, *p_yo;
-	char *p_ci, *p_xi;  //, *p_yi;
+	char *p_ci, *p_xi, *p_yi, *p_xyi;
 	float *p_ko, *p_ki, *p_kx; //, *p_ky;
 
 	float tmp_sum0;
@@ -385,25 +417,40 @@ void func_cnn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 		{
 			p_xo = p_co; 
 			p_co += map_size_o;
-			p_ki = p_ko;
-			p_ko += map_ker_a;
+			
+			p_xi = inX;
 			for(oxidx=0; oxidx < p_calc_para->Ox; oxidx++)
 			{
 				p_yo = p_xo;
 				p_xo += p_calc_para->Oy;
+
+				p_yi = p_xi;
+				p_xi += p_calc_para->Iy;	// *stride_x, stride_x= 1			
 				for(oyidx=0; oyidx < p_calc_para->Oy; oyidx++)
 				{
+					if ((0) && (oyidx == 5)) // for debug
+					{
+						char *p_debx;
+						p_debx = &p_yi[3*p_calc_para->Iy];
+						printf("%d,%d,%d,%d,%d\n",p_debx[0],p_debx[1],p_debx[2],p_debx[3],p_debx[4]);
+						p_debx = &p_yi[4*p_calc_para->Iy];
+						printf("%d,%d,%d,%d,%d\n",p_debx[0],p_debx[1],p_debx[2],p_debx[3],p_debx[4]);
+					}
+					
 					// each kernel
 					tmp_sum0 = p_yo[oyidx];
-					p_ci = inX;
+					p_xyi = p_yi;
+					p_yi++; // *stride_y, stride_y = 1
+					
+					p_ki = p_ko; // init Kernel
 					for(icidx = 0; icidx<p_calc_para->Ci; icidx++)
 					{
 						float sum0;
-						p_xi = p_ci;
-						p_ci += map_size_i;
+						p_ci = p_xyi;
+						p_xyi += map_size_i;
 						p_kx = p_ki;
 						p_ki += map_ker;
-						func_conv2d_spike_pro(p_xi, &sum0, p_kx, p_calc_para->Iy, p_calc_para->Kx, p_calc_para->Ky);
+						func_conv2d_spike_pro(p_ci, &sum0, p_kx, p_calc_para->Iy, p_calc_para->Kx, p_calc_para->Ky);
 						
 						tmp_sum0 += sum0;
 					} // end icidx
@@ -411,6 +458,9 @@ void func_cnn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 				} // end oyidx
 		
 			}// end oxidx
+			
+			p_ko += map_ker_a;
+			
 		}// end ocidx
 		for(uLint_t i0=0;i0<p_calc_para->size_out; i0++)
 		{
@@ -455,10 +505,10 @@ void func_cnn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 						{
 							if ((coidx==1) && (0 == cidx))
 							{
-								printf("%d, %d, %d, %d, %f\n",coidx,cidx,xidx,yidx,p_ki[xidx*p_calc_para->Iy+yidx]);
+								printf("%d, %d, %d, %d, %f\n",coidx,cidx,xidx,yidx,p_ki[xidx*p_calc_para->Ky+yidx]);
 							}
 							
-							fprintf(fp_deb_spike_cnn,"%d, %d, %d, %d, %f\n",coidx,cidx,xidx,yidx,p_ki[xidx*p_calc_para->Iy+yidx]);
+							fprintf(fp_deb_spike_cnn,"%d, %d, %d, %d, %f\n",coidx,cidx,xidx,yidx,p_kx[xidx*p_calc_para->Ky+yidx]);
 						}
 					}
 				}
@@ -499,20 +549,26 @@ void func_cnn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 		p_co += map_size_o;
 		p_ki = p_ko;
 		p_ko += map_ker_a;
+		
+		p_xi = inX;
 		for(oxidx=0; oxidx < p_calc_para->Ox; oxidx++)
 		{
 			p_yo = p_xo;
 			p_xo += p_calc_para->Oy;
+		
+			p_yi = p_xi;
+			p_xi += p_calc_para->Iy;	// *stride_x, stride_x= 1			
 			for(oyidx=0; oyidx < p_calc_para->Oy; oyidx++)
 			{
 				// each kernel
 				tmp_sum0 = p_yo[oyidx];
-				p_ci = inX;
+				p_xyi = p_yi;
+				p_yi++; // *stride_y, stride_y = 1
 				for(icidx = 0; icidx<p_calc_para->Ci; icidx++)
 				{
 					float sum0;
-					p_xi = p_ci;
-					p_ci += map_size_i;
+					p_ci = p_xyi;
+					p_xyi += map_size_i;
 					p_kx = p_ki;
 					p_ki += map_ker;
 					func_conv2d_spike_pro(p_xi, &sum0, p_kx, p_calc_para->Iy, p_calc_para->Kx, p_calc_para->Ky);

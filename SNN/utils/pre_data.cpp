@@ -30,7 +30,7 @@ void func_pre_data_MNIST_init(str_data_para *p_pre_data)
 	p_pre_data->nx = 1;
 	p_pre_data->ny = 1;  
 	p_pre_data->outf  = 10;
-	p_pre_data->n_tot = 4; //10000; 
+	p_pre_data->n_tot = 10000; // 4; //10000; 
 }
 
 
