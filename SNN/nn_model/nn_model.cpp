@@ -772,13 +772,20 @@ int func_mnist_cnn_wei_init(char *fn, float *p_wei_out, float *p_bia_out,int ci,
 				
 			}
 		}
-	}
-	if (bias_en != 0)
-	{
-		// process bias
+		if (bias_en != 0)
+		{
+			// process bias
+			p_wei = p_bia_out;
+			for(idx=0; idx<co; idx++)
+			{
+				fscanf(fp_wei,"%f",&p_wei[idx]);
+			}
+		}
+	
+		fclose(fp_wei);
+
 	}
 	
-	fclose(fp_wei);
 	return 0;
 
 }
