@@ -37,7 +37,7 @@ void Spike_input_gen_one(char *spike_out, int tidx, int t_sim, void *in_data, uL
 			else
 				spike_out[idx] = 0;
 
-		#if (0 !=  CASE_DEBUG)
+		#if (0 !=  SPIKE_DEBUG)
 			printf("Spike, idx, tidx, t_sim, out: %ld, %d, %d, %f, %d\n",idx,tidx,t_sim,tho,spike_out[idx]);
 		#endif
 		}
@@ -125,7 +125,7 @@ void Neuron_sim_one(void *in_data, NN_model_c *p_nn, void *res_data, str_judge_d
 		outY = (float *)res_data; // -- should be delete ?, only for compiler debug
 		Neuron_out_pro(tidx, t_sim, size_out, outX, outY, deb_info);
 
-#if (0 != CASE_DEBUG)
+#if (0 != SPIKE_DEBUG)
 		printf("In Neuron_sim_one:\n");
 	#if (0 == CASE_TEST)
 		printf("XOR, tidx:%d,res:%f\n",tidx,outY[0]/(tidx+1));
@@ -146,7 +146,7 @@ void Neuron_sim_one(void *in_data, NN_model_c *p_nn, void *res_data, str_judge_d
 
 	#if (0 == CASE_TEST)
 	jud_idx = ((2*outY[0])>=t_sim); // for XOR
-	#elif ((1 == CASE_TEST) || (2 == CASE_TEST))
+	#elif ((1 == CASE_TEST) || (2 == CASE_TEST)|| (3 == CASE_TEST))
 	float   jud_va;
 	func_find_max(outY, size_out, &jud_idx, &jud_va);
 	#endif
@@ -200,7 +200,7 @@ void Judge_pro(uLint_t idx, void *outY, void *ouIdeal, str_judge_data *p_judgeRe
     	printf("case:%ld, out is %f, logic is %d, expected is %d\n",idx,ou[0],(ou[0]>0.5),ideal[0]);
     	p_judgeRes->err_num++;
     }
-    #elif ((1 == CASE_TEST) || (2 == CASE_TEST))
+    #elif ((1 == CASE_TEST) || (2 == CASE_TEST)|| (3 == CASE_TEST))
 	if (p_judgeRes->judge_data != (ideal[0]))
     {
     	//	for debug

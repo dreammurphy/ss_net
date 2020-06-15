@@ -16,6 +16,12 @@ int g_Seed_sca_buf[LFSR_GROUP_NUM]	= {
 }; // could configure from files in spike_LFSR_init
 
 
+int g_deb_print = 0;
+#define DEB_PRINT_NUM	(60)
+
+//FILE * fp_deb_spike_fcn;
+FILE * fp_deb_spike_cnn;
+
 void test_rand_16(int*out_pos, int out_len, char *mem_init, int mem_inv); // mem_inv,1:inv process
 void test_rand_16_int(int*out_pos, int out_len, int seed_16, int mem_inv); // mem_inv,1:inv process
 void func_gen_poisson_one(int in_va,char *out_spike,rand_cla * p_LFSR_gen,rand_cla * p_LFSR_sca, int ratio);
@@ -535,11 +541,6 @@ void func_conv2d_spike_pro(char *inX, float *ouX, float *p_wei,int Iy, int Kx, i
 
 }
 
-int g_deb_print = 0;
-#define DEB_PRINT_NUM	(30)
-
-//FILE * fp_deb_spike_fcn;
-FILE * fp_deb_spike_cnn;
 void func_fcn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 {
 	int coidx, cidx;
@@ -624,7 +625,7 @@ void func_fcn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 				printf("%d, %f, %f\n",coidx,ouX[coidx],p_tmp_o[coidx]);
 				fprintf(fp_deb_spike_cnn,"-1, %d, %f, %f\n",coidx,ouX[coidx],p_tmp_o[coidx]);
 			}
-		#elif (2 == CASE_TEST)
+		#elif ((2 == CASE_TEST)||(3 == CASE_TEST))
 		
 		for(cidx=0; cidx< p_calc_para->Ci; cidx++)
 		{
@@ -697,6 +698,7 @@ void func_cnn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 {
 // in:Y*X*Ci, Ou:Y*X*Co, weight:Ky*Kx*Ci*Co
 	int oyidx,oxidx,ocidx,icidx;
+	int str_x_delta,str_y_delta;
 	uLint_t map_size_o,map_size_i, map_ker, map_ker_a;
 	float *p_co, *p_xo, *p_yo;
 	char *p_ci, *p_xi, *p_yi, *p_xyi;
@@ -710,6 +712,9 @@ void func_cnn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 	map_ker_a  = map_ker*p_calc_para->Ci;
 	p_co = ouX;
 	p_ko  = p_calc_para->p_weight;
+
+	str_x_delta = p_calc_para->Iy*p_calc_para->stride_x;
+	str_y_delta = p_calc_para->stride_y;
 
 	#if (DEB_PRINT_NUM > 0)
 		// for debug more
@@ -740,22 +745,22 @@ void func_cnn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 				p_xo += p_calc_para->Oy;
 
 				p_yi = p_xi;
-				p_xi += p_calc_para->Iy;	// *stride_x, stride_x= 1			
+				p_xi += str_x_delta;	// *stride_x, stride_y			
 				for(oyidx=0; oyidx < p_calc_para->Oy; oyidx++)
 				{
 					if ((0) && (oyidx == 5)) // for debug
 					{
 						char *p_debx;
-						p_debx = &p_yi[3*p_calc_para->Iy];
+						p_debx = &p_yi[1*p_calc_para->Iy];
 						printf("%d,%d,%d,%d,%d\n",p_debx[0],p_debx[1],p_debx[2],p_debx[3],p_debx[4]);
-						p_debx = &p_yi[4*p_calc_para->Iy];
+						p_debx = &p_yi[2*p_calc_para->Iy];
 						printf("%d,%d,%d,%d,%d\n",p_debx[0],p_debx[1],p_debx[2],p_debx[3],p_debx[4]);
 					}
 					
 					// each kernel
 					tmp_sum0 = p_yo[oyidx];
 					p_xyi = p_yi;
-					p_yi++; // *stride_y, stride_y = 1
+					p_yi+=str_y_delta; // *stride_y, stride_y
 					
 					p_ki = p_ko; // init Kernel
 					for(icidx = 0; icidx<p_calc_para->Ci; icidx++)
@@ -797,9 +802,11 @@ void func_cnn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 					{
 						if (cidx==0)
 						{
-							printf("-1, %d, %d, %d, %d\n",cidx,xidx,yidx,inX[cidx*size_in0+xidx*p_calc_para->Iy+yidx]);
+							printf("-1, %d, %d, %d, %d\n",cidx,xidx,yidx,inX[cidx*size_in0+\
+								xidx*p_calc_para->Iy+yidx]);
 						}
-						fprintf(fp_deb_spike_cnn,"-1, %d, %d, %d, %d\n",cidx,xidx,yidx,inX[cidx*size_in0+xidx*p_calc_para->Iy+yidx]);
+						fprintf(fp_deb_spike_cnn,"-1, %d, %d, %d, %d\n",cidx,xidx,yidx,inX[cidx*size_in0+\
+								xidx*p_calc_para->Iy+yidx]);
 					}
 				}
 			}
@@ -872,13 +879,13 @@ void func_cnn_spike_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 			p_xo += p_calc_para->Oy;
 		
 			p_yi = p_xi;
-			p_xi += p_calc_para->Iy;	// *stride_x, stride_x= 1			
+			p_xi += str_x_delta;	// *stride_x, stride_x= 1			
 			for(oyidx=0; oyidx < p_calc_para->Oy; oyidx++)
 			{
 				// each kernel
 				tmp_sum0 = p_yo[oyidx];
 				p_xyi = p_yi;
-				p_yi++; // *stride_y, stride_y = 1
+				p_yi+=str_y_delta; // *stride_y, stride_y = 1
 				for(icidx = 0; icidx<p_calc_para->Ci; icidx++)
 				{
 					float sum0;
@@ -902,6 +909,7 @@ void func_pooling_ave_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 {
 // in:Y*X*Ci, Ou:Y*X*Co, weight:Ky*Kx*Ci*Co
 	int oyidx,oxidx,ocidx,ixidx,iyidx;
+	int str_x_delta,str_y_delta;
 	uLint_t map_size_o,map_size_i;
 	float *p_co, *p_xo, *p_yo;
 	char *p_ci, *p_xi, *p_yi;
@@ -912,6 +920,8 @@ void func_pooling_ave_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 
 	map_size_o = p_calc_para->Ox*p_calc_para->Oy;
 	map_size_i = p_calc_para->Ix*p_calc_para->Iy;
+	str_x_delta = p_calc_para->Iy*p_calc_para->stride_x;
+	str_y_delta = p_calc_para->stride_y;
 	p_co = ouX;
 	p_ci = inX;
 //	p_ko  = p_calc_para->p_weight;
@@ -930,13 +940,13 @@ void func_pooling_ave_pro(char *inX, float *ouX, str_calc_para *p_calc_para)
 			p_yo = p_xo;
 			p_xo += p_calc_para->Oy;
 			p_yi = p_xi;
-			p_xi += p_calc_para->Iy * p_calc_para->stride_x;
+			p_xi += str_x_delta;
 			for(oyidx=0; oyidx < p_calc_para->Oy; oyidx++)
 			{
 				// each kernel
 				tmp_sum0 = 0; // then, add inx[ix,iy], range:kx,ky, and next point, str_x,str_y
 				p_cur = p_yi;
-				p_yi += p_calc_para->stride_y;
+				p_yi += str_y_delta;
 				for(ixidx = 0; ixidx<p_calc_para->Kx; ixidx++)
 				{
 					for(iyidx = 0; iyidx<p_calc_para->Ky; iyidx++)

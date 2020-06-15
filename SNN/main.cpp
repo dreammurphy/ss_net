@@ -50,6 +50,8 @@ int main(void)
 	fp_deb_spike_cnn = fopen("deb_spike_fcn.txt","w");
 	#elif (2 == CASE_TEST)
 	fp_deb_spike_cnn = fopen("deb_spike_cnn.txt","w");
+	#elif (3 == CASE_TEST)
+	fp_deb_spike_cnn = fopen("deb_spike_cnn_b.txt","w");
 	#endif
 	
 	
@@ -118,7 +120,7 @@ int main(void)
 
 #endif
 
-#if ((1 == CASE_TEST) || (2 == CASE_TEST))
+#if ((1 == CASE_TEST) || (2 == CASE_TEST)|| (3 == CASE_TEST))
 //	fclose(fp_deb_spike_fcn);
 //#elif (2 == CASE_TEST)
 	fclose(fp_deb_spike_cnn);

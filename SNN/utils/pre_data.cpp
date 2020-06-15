@@ -85,7 +85,7 @@ void Simu_para_c::Get_test_data(int idx, str_data_para *p_param, void *out_x, vo
 	in_x[1] = xor_buf_in[idx][1];
 	ou_y[0] = xor_ou[idx];
 
-#if ((1 == CASE_TEST) || (2 == CASE_TEST))
+#if ((1 == CASE_TEST) || (2 == CASE_TEST)|| (3 == CASE_TEST))
 	fscanf(fp_data,"%d", &ou_y[0]);
 	float amp_div;
 	amp_div = 1.0/255;
